@@ -1,9 +1,0 @@
-{ "Backup Folder 1" :
-    { "source"      : "/home/costas/Backup1",
-      "destination" : "/media/costas/Teras2/Backup1"
-    },
-  "Backup Folder 2" :
-    { "source"      : "/home/costas/Backup2",
-      "destination" : "/media/costas/Teras2/Backup2"
-    } 
-} 
