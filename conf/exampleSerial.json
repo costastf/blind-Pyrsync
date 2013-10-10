@@ -1,0 +1,19 @@
+{ "Backup Job Name 1" :
+    { "source"      : "/absolute/path/to/the/directory/to/be/rsynced",
+      "destination" : "relative/path/to/the/destination/drive"
+    },
+  "Variable Backup Job Name 2" :
+    { "source"      : "/absolute/path/to/the/directory/to/be/rsynced",
+      "destination" : "relative/path/to/the/destination/drive",
+      "delete"      : "False"   
+    },
+  "Job whatever" :
+    { "source"      : "/absolute/path/to/the/directory/to/be/rsynced",
+      "destination" : "bin",
+      "exclude"     : "*.sh *.mp3"        
+    },
+  "ETC Backup" :
+    { "source"      : "/etc",
+      "destination" : "etc"
+    }        
+}

@@ -1,0 +1,7 @@
+{ "settings" :
+    { "smtp"        : "", 
+      "sender"      : "",
+      "recipients"  : "",      
+      "subject"     : ""       
+    }
+} 
