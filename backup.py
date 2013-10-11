@@ -34,6 +34,7 @@ from utils.utils import checkSwapUsage
 class BackUp(object):
     def __init__(self):
         self.__cwd = os.path.abspath(os.path.dirname(__file__))
+        self.email = False
         self.__attributes = ['humanReadable',\
                             'verbose',\
                             'recursive',\
