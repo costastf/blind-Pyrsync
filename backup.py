@@ -116,7 +116,7 @@ class BackUp(object):
                 with open(summarylogFile.name, 'a') as sifile:
                     sifile.write(checkPartitionUsage(partitionChecked, partitionPercentageWarn) + '\n\n')
                     sifile.write(checkSwapUsage(swapPercentageWarn) + '\n\n')                             
-                    sifile.write(checkPartitionUsage(self.drive.mountedPath ,USBPercentageWarn) + '\n\n')                                                                       
+                    sifile.write(checkPartitionUsage(self.drive.mountedPath ,USBPercentageWarn) + '\n\n')
             time.sleep(1)
             out, error = self.drive.umount()
             if error:
