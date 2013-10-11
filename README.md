@@ -131,4 +131,4 @@ Edit the backup.py script in its main and change
     to
     backUp.setJobDetails(serial, partition='/dev/sdb1')        
 ```    
-Call the backup script as root line /path/to/scipt/backup.py DRIVESERIAL DEVICENAMEUNDERDEV and everything should run OK. If not, troubleshoot according to the error messages given. If everything works out as expected revert the changes to the setJobDetails call since the udev rule is set to create a symlink under dev with name BackupHD and that is defaulted in the script so the partition argument is not needed when combined with udev.
+Call the backup script as root /path/to/scipt/backup.py DRIVESERIAL DEVICENAMEUNDERDEV and everything should run OK. If not, troubleshoot according to the error messages given. If everything works out as expected revert the changes to the setJobDetails call since the udev rule is set to create a symlink under dev with name BackupHD and that is defaulted in the script so the partition argument is not needed when combined with udev.
