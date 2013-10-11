@@ -60,24 +60,24 @@ It's contents should be in the form of :
 Please note that the source should be the absolute path of the rsynced directory BUT the destination must be the relative path under the drives filesystem. So, if one where to backup the /etc directory in a directory with the name "etc" in the drive the settings should be according to the above final example. 
 The rsync options supported are :
 ```
-                 'humanReadable'     :'--human-readable',    # output numbers in a human-readable format
-                 'verbose'           :'--verbose',           # increase verbosity
-                 'recursive'         :'--recursive',         # recurse into directories
-                 'links'             :'--links',             # copy symlinks as symlinks
-                 'permissions'       :'--perms',             # preserve permissions
-                 'executability'     :'--executability',     # preserve executability
-                 'extendedAttributes':'--xattrs',            # preserve extended attributes
-                 'owner'             :'--owner',             # preserve owner (super-user only)
-                 'group'             :'--group',             # preserve group
-                 'times'             :'--times',             # preserve modification times        
-                 'delete'            :'--delete',            # delete extraneous files from dest dirs
-                 'ignoreErrors'      :'--ignore-errors',     # delete even if there are I/O errors
-                 'force'             :'--force',             # force deletion of dirs even if not empty
-                 'exclude'           :'--exclude=',          # exclude files matching PATTERN
-                 'include'           :'--include=',          # don't exclude files matching PATTERN
-                 'logFile'           :'--log-file=',         # log what we're doing to the specified FILE 
-                 'stats'             :'--stats',             # give some file-transfer stats
-                 'archive'           :'--archive'            # archive mode; equals -rlptgoD (no -H,-A,-X)
+     'humanReadable'     :'--human-readable',    # output numbers in a human-readable format
+     'verbose'           :'--verbose',           # increase verbosity
+     'recursive'         :'--recursive',         # recurse into directories
+     'links'             :'--links',             # copy symlinks as symlinks
+     'permissions'       :'--perms',             # preserve permissions
+     'executability'     :'--executability',     # preserve executability
+     'extendedAttributes':'--xattrs',            # preserve extended attributes
+     'owner'             :'--owner',             # preserve owner (super-user only)
+     'group'             :'--group',             # preserve group
+     'times'             :'--times',             # preserve modification times        
+     'delete'            :'--delete',            # delete extraneous files from dest dirs
+     'ignoreErrors'      :'--ignore-errors',     # delete even if there are I/O errors
+     'force'             :'--force',             # force deletion of dirs even if not empty
+     'exclude'           :'--exclude=',          # exclude files matching PATTERN
+     'include'           :'--include=',          # don't exclude files matching PATTERN
+     'logFile'           :'--log-file=',         # log what we're doing to the specified FILE 
+     'stats'             :'--stats',             # give some file-transfer stats
+     'archive'           :'--archive'            # archive mode; equals -rlptgoD (no -H,-A,-X)
 ```
 one can easyly add more, under the pyrsync.py wrapper. The options that are set by default (because of my needs) are :
 ```
