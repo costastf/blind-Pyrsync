@@ -70,7 +70,7 @@ class BackUp(object):
     def setJobDetails(self, serial):
         self.jobs = {}
         try:
-            self.__configuration = json.loads(open(os.path.join(self.__cwd, 'conf', serial+'.json')).read())
+            self.__configuration = json.loads(open(os.path.join(self.__cwd, 'conf', serial.strip()+'.json')).read())
             for job, settings in self.__configuration.iteritems():
                 self.jobs[job] = {'source':settings['source'], 'destination':settings['destination']}
                 for key in self.__attributes:
