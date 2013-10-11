@@ -26,6 +26,7 @@ import sys, os
 
 
 class Sync(object):
+    '''Basic rsync wrapper supporting the following options. Works on linux and windows. For windows one needs a            statically compiled rsync from cygwin. One can get it from http://it-em.net/joomla/index.php?option=com_content&view     =article&id=49&Itemid=54cms/front_content.php '''
     class Options(object):
         def __init__(self, options):
             for key,value in options.items():
