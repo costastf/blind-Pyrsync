@@ -20,20 +20,22 @@ udevadm info -a -p $(udevadm info -q path -n /dev/!!DEVICE!!) | egrep -i "ATTRS{
 
 After the udev rule is set a file named email.json should be created under conf directory with the following structure
 
+```
 { "settings" :
-    { "smtp"        : "", 
-      "sender"      : "",
-      "recipients"  : "",      
-      "subject"     : ""       
+    {   "smtp"        : "", 
+        "sender"      : "",
+        "recipients"  : "",      
+        "subject"     : ""       
     }
-} 
+}
+```
 
 The script doesn't support smtp authentication. It is assumed that one can send email through the provider's smtp service. The recipient or recipients(comma delimited multiple mails: "test@gmail.com,test2@gmail.com") will receive an email with the full rsync log as attachment and a summary with only the basic details of the finished jobs.
 
 Finally under conf directory we create the backup jobs as json files. The name should be the drive's serial number with the json extension. Example : 116AC2101219.json
 
 It's contents should be in the form of :
-
+```
 { "Backup Job Name 1" :
     { "source"      : "/absolute/path/to/the/directory/to/be/rsynced",
       "destination" : "relative/path/to/the/destination/drive"
@@ -53,9 +55,11 @@ It's contents should be in the form of :
       "destination" : "etc"
     }        
 }
+```
 
 Please note that the source should be the absolute path of the rsynced directory BUT the destination must be the relative path under the drives filesystem. So, if one where to backup the /etc directory in a directory with the name "etc" in the drive the settings should be according to the above final example. 
 The rsync options supported are :
+```
                  'humanReadable'     :'--human-readable',    # output numbers in a human-readable format
                  'verbose'           :'--verbose',           # increase verbosity
                  'recursive'         :'--recursive',         # recurse into directories
@@ -74,8 +78,9 @@ The rsync options supported are :
                  'logFile'           :'--log-file=',         # log what we're doing to the specified FILE 
                  'stats'             :'--stats',             # give some file-transfer stats
                  'archive'           :'--archive'            # archive mode; equals -rlptgoD (no -H,-A,-X)
-
+```
 one can easyly add more, under the pyrsync.py wrapper. The options that are set by default (because of my needs) are :
+```
       humanReadable = True
       verbose = True
       recursive = True
@@ -90,7 +95,7 @@ one can easyly add more, under the pyrsync.py wrapper. The options that are set 
       ignoreErrors = True
       force = True
       stats = True        
-
+```
 One can remove any of the supported settings by setting the variable to False ("delete": "False" ) in the recipe, or set new ones. The logFile is set automatically by the main script when it is run, if it is set to send email so setting the variable will override it.
 
 
