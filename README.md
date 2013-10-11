@@ -96,9 +96,10 @@ one can easyly add more, under the pyrsync.py wrapper. The options that are set 
       force = True
       stats = True        
 ```
-One can remove any of the supported settings by setting the variable to False ("delete": "False" ) in the recipe, or set new ones. The logFile is set automatically by the main script when it is run, if it is set to send email so setting the variable will override it.
+One can remove any of the supported settings by setting the variable to False ("delete": "False" ) in the recipe, or set new ones. The logFile is set automatically by the main script when it is run, so even if it is set in the json configuration file  the variable will be overriden.
 
 ******************    TROUBLESHOOTING   ******************
+
 rsync should be installed (DOH!!)
 
 mount and umount should be under /bin/. If not, change the paths accordingly in Drive class. 
