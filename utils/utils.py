@@ -50,21 +50,21 @@ def tail( f, window=20 ):
     return '\n'.join(''.join(data).splitlines()[-window:])
 
 def checkPartitionUsage(partition, threshold=90):
-    df = Popen(['df','-h'],stdout=PIPE, stderr=PIPE).stdout.read()        
+    df = Popen(['df','-h'],stdout=PIPE, stderr=PIPE).stdout.read()
     percentage = ''
     for line in df.splitlines():
-        if line.split()[5] == partition:
-            percentage = int(line.split()[4].replace('%',''))
+        if partition in line:
+            percentage = int(line.split()[-2].replace('%',''))
             break
-    if '/tmp' in partition:
+    if partition.startswith('/tmp'):
         partition = 'External HDD'
     if not percentage:
         text = 'Partition {0} not found'.format(partition)
     elif percentage < threshold:
-        text = 'Partition {0} usage OK'.format(partition)        
+        text = 'Partition {0} usage OK'.format(partition)
     elif percentage >= threshold:
-        text = 'Warning! Partition usage has exceeded {0}% and is {1}%'.format(threshold, percentage)        
-    return text
+        text = 'Warning! Partition usage has exceeded {0}% and is {1}%'.format(threshold, percentage)
+    return text 
 
 def checkSwapUsage(threshold=40):
     free = Popen(['free'],stdout=PIPE, stderr=PIPE).stdout.read()        
