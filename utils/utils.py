@@ -53,9 +53,12 @@ def checkPartitionUsage(partition, threshold=90):
     df = Popen(['df','-h'],stdout=PIPE, stderr=PIPE).stdout.read()
     percentage = ''
     for line in df.splitlines():
-        if partition in line:
-            percentage = int(line.split()[-2].replace('%',''))
-            break
+        try:
+            if line.split()[-1] == partition:
+                percentage = int(line.split()[-2].replace('%',''))
+                break
+        except IndexError:
+            pass
     if partition.startswith('/tmp'):
         partition = 'External HDD'
     if not percentage:
@@ -65,6 +68,7 @@ def checkPartitionUsage(partition, threshold=90):
     elif percentage >= threshold:
         text = 'Warning! Partition usage has exceeded {0}% and is {1}%'.format(threshold, percentage)
     return text 
+
 
 def checkSwapUsage(threshold=40):
     free = Popen(['free'],stdout=PIPE, stderr=PIPE).stdout.read()        
