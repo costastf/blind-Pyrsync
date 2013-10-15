@@ -17,7 +17,7 @@
 # this program; if not, write to the Free Software Foundation, Inc., 59 Temple
 # Place, Suite 330, Boston, MA  02111-1307  USA
 #
-__author__    = 'Ioannis Avraam <iavraam@eteth.gr>, Costas Tyfoxylos <ctyf@eteth.gr>'
+__author__    = 'Ioannis Avraam <iavraam@eteth.gr>, Costas Tyfoxylos <costas.tyf@gmail.com>'
 __docformat__ = 'plaintext'
 __date__      = '28/04/2011'
 
@@ -55,9 +55,9 @@ class Email(object):
         smtp.close()
 
 if __name__ == '__main__':
-    message=Email(smtp='192.168.1.34')
-    message.send(   sender      = 'it3',\
-                    recipients  = 'ctifoxilos@eteth.lan',\
-                    subject     = 'test και τα μυαλα στα καγκελα',\
+    message=Email(smtp='smtp.provider.com')
+    message.send(   sender      = 'sender@server.com',\
+                    recipients  = 'recipient@server.com',\
+                    subject     = 'test subject και λίγα utf 8 ελληνικά',\
                     text        = 'this is the first test και ειναι μια χαρα')
-#                    pdf         = '/home/costas/Desktop/downey08semaphores.pdf')
+#                    pdf         = '/path/to/pdf/file.pdf,/path/to/other/pdf/file2.pdf')
