@@ -129,16 +129,20 @@ class Sync(object):
     def __appendOptions(self, command):
         for key, value in vars(self.options).items():
             if value:
-                if key == 'exclude':
-                    for exclude in value.split():
-                        command.append(self.__options[key] + exclude)
-                elif key == 'include':
-                    for include in value.split():
-                        command.append(self.__options[key] + include)
-                elif key == 'logFile':
-                    command.append(self.__options[key] + value)
-                else:
-                    command.append(self.__options[key])
+                try:
+                    if key == 'exclude':
+                        for exclude in value.split():
+                            command.append(self.__options[key] + exclude)
+                    elif key == 'include':
+                        for include in value.split():
+                            command.append(self.__options[key] + include)
+                    elif key == 'logFile':
+                        command.append(self.__options[key] + value)
+                    else:
+                        command.append(self.__options[key])
+                except KeyError:
+                    print('Unknown or not supported option "{0}". Supported options : {1}'.format(key, ' '.join(self.__options.keys())))
+                    pass
         command.append(self.__normalizePath(self.source))
         command.append(self.__normalizePath(self.destination))
         return command
