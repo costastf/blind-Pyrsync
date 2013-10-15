@@ -34,6 +34,23 @@ from utils.utils import checkSwapUsage
 class BackUp(object):
     def __init__(self):
         self.__cwd = os.path.abspath(os.path.dirname(__file__))
+        self.attributes = ['humanReadable',\
+                            'verbose',\
+                            'recursive',\
+                            'links',\
+                            'permissions',\
+                            'executability',\
+                            'extendedAttributes',\
+                            'owner',\
+                            'group',\
+                            'times',\
+                            'delete',\
+                            'ignoreErrors',\
+                            'force',\
+                            'exclude',\
+                            'include',\
+                            'archive',\
+                            'stats']
     
     def setDrive(self, drive, partition='/dev/BackupHD'):
         self.drive = Drive(drive, partition)
@@ -55,23 +72,7 @@ class BackUp(object):
             self.__configuration = json.loads(open(os.path.join(self.__cwd, 'conf', serial.strip() + '.json')).read())
             for job, settings in self.__configuration.iteritems():
                 self.jobs[job] = {'source':settings['source'], 'destination':settings['destination']}
-                for key in ['humanReadable',\
-                            'verbose',\
-                            'recursive',\
-                            'links',\
-                            'permissions',\
-                            'executability',\
-                            'extendedAttributes',\
-                            'owner',\
-                            'group',\
-                            'times',\
-                            'delete',\
-                            'ignoreErrors',\
-                            'force',\
-                            'exclude',\
-                            'include',\
-                            'archive',\
-                            'stats']:
+                for key in self.attributes:
                     try:
                         self.jobs[job].update({key:settings[key]})
                     except KeyError:
@@ -93,23 +94,7 @@ class BackUp(object):
                 sync = Sync()
                 sync.source      = settings['source']
                 sync.destination = os.path.join(self.drive.mountedPath, settings['destination'])
-                for key in ['humanReadable',\
-                            'verbose',\
-                            'recursive',\
-                            'links',\
-                            'permissions',\
-                            'executability',\
-                            'extendedAttributes',\
-                            'owner',\
-                            'group',\
-                            'times',\
-                            'delete',\
-                            'ignoreErrors',\
-                            'force',\
-                            'exclude',\
-                            'include',\
-                            'archive',\
-                            'stats']:
+                for key in  self.attributes:
                     try:
                         if settings[key] == 'False' or settings[key] == 'None':
                             delattr(sync.options, key)
