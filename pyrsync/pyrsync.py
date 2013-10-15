@@ -17,7 +17,7 @@
 # this program; if not, write to the Free Software Foundation, Inc., 59 Temple
 # Place, Suite 330, Boston, MA 02111-1307 USA
 #
-__author__ = 'Costas Tyfoxylos <ctyf@eteth.gr>'
+__author__ = 'Costas Tyfoxylos <costas.tyf@gmail.com>'
 __docformat__ = 'plaintext'
 __date__ = '21/03/2012'
 
@@ -26,16 +26,14 @@ import sys, os
 
 
 class Sync(object):
-    '''Basic rsync wrapper supporting the following options. Works on linux and windows. 
-    For windows one needs a statically compiled rsync from cygwin. 
-    One can get it from : 
-    http://it-em.net/joomla/index.php?option=com_content&view=article&id=49&Itemid=54cms/front_content.php'''
     class Options(object):
         def __init__(self, options):
             for key,value in options.items():
                 self.__dict__[key] = value    
  
     def __init__(self):
+        self.output = False
+        self.error = False
         self.__options = { 'humanReadable'     :'--human-readable',    # output numbers in a human-readable format
                            'verbose'           :'--verbose',           # increase verbosity
                            'recursive'         :'--recursive',         # recurse into directories
@@ -52,7 +50,7 @@ class Sync(object):
                            'exclude'           :'--exclude=',          # exclude files matching PATTERN
                            'include'           :'--include=',          # don't exclude files matching PATTERN
                            'logFile'           :'--log-file=',         # log what we're doing to the specified FILE 
-                           'stats'             :'--stats',             # give some file-transfer stats
+                           'stats'             :'--stats',              # give some file-transfer stats
                            'archive'           :'--archive'            # archive mode; equals -rlptgoD (no -H,-A,-X)
                        }
         self.errorCodes = { '1' : 'Syntax or usage error' , 
@@ -72,7 +70,6 @@ class Sync(object):
                     	    '24': 'Partial transfer due to vanished source files' ,
                     	    '30': 'Timeout in data send/receive'
                 		}
-                       
         self.options = self.Options(self.__options)
         self.options.humanReadable = True
         self.options.verbose = True
@@ -80,6 +77,7 @@ class Sync(object):
         self.options.links = True
         self.options.permissions = True
         self.options.executability = True
+        self.options.archive = False
         if sys.platform == 'win32':
             self.options.extendedAttributes = False
         else:
@@ -150,8 +148,9 @@ class Sync(object):
             command = [self.binary]
             command = self.__appendOptions(command)
             print command
-            process = Popen(command)
-            returnCode = process.wait()
+            process = Popen(command, stdout=PIPE)
+            self.output, self.error = process.communicate()
+            returnCode = process.returncode
             if str(returnCode) != '0':
                 try:
                     returnCode = self.errorCodes[str(returnCode)]
@@ -168,4 +167,3 @@ if __name__ == '__main__':
     backup.options.exclude  = '*.mp3 *.jpg'
     backup.options.links    = False
     backup.run()
-
