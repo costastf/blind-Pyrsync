@@ -32,8 +32,8 @@ class Sync(object):
                 self.__dict__[key] = value    
  
     def __init__(self):
-        self.output = False
-        self.error = False
+        self.output = ''
+        self.error = ''
         self.__options = { 'humanReadable'     :'--human-readable',    # output numbers in a human-readable format
                            'verbose'           :'--verbose',           # increase verbosity
                            'recursive'         :'--recursive',         # recurse into directories
@@ -151,6 +151,8 @@ class Sync(object):
             process = Popen(command, stdout=PIPE)
             self.output, self.error = process.communicate()
             returnCode = process.returncode
+            if not self.error:
+                self.error = ''
             if str(returnCode) != '0':
                 try:
                     returnCode = self.errorCodes[str(returnCode)]
