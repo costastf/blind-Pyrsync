@@ -34,24 +34,6 @@ from utils.utils import checkSwapUsage
 class BackUp(object):
     def __init__(self):
         self.__cwd = os.path.abspath(os.path.dirname(__file__))
-        self.email = False
-        self.__attributes = ['humanReadable',\
-                            'verbose',\
-                            'recursive',\
-                            'links',\
-                            'permissions',\
-                            'executability',\
-                            'extendedAttributes',\
-                            'owner',\
-                            'group',\
-                            'times',\
-                            'delete',\
-                            'ignoreErrors',\
-                            'force',\
-                            'exclude',\
-                            'include',\
-                            'archive',\
-                            'stats']
     
     def setDrive(self, drive, partition='/dev/BackupHD'):
         self.drive = Drive(drive, partition)
@@ -70,10 +52,26 @@ class BackUp(object):
     def setJobDetails(self, serial):
         self.jobs = {}
         try:
-            self.__configuration = json.loads(open(os.path.join(self.__cwd, 'conf', serial.strip()+'.json')).read())
+            self.__configuration = json.loads(open(os.path.join(self.__cwd, 'conf', serial.strip() + '.json')).read())
             for job, settings in self.__configuration.iteritems():
                 self.jobs[job] = {'source':settings['source'], 'destination':settings['destination']}
-                for key in self.__attributes:
+                for key in ['humanReadable',\
+                            'verbose',\
+                            'recursive',\
+                            'links',\
+                            'permissions',\
+                            'executability',\
+                            'extendedAttributes',\
+                            'owner',\
+                            'group',\
+                            'times',\
+                            'delete',\
+                            'ignoreErrors',\
+                            'force',\
+                            'exclude',\
+                            'include',\
+                            'archive',\
+                            'stats']:
                     try:
                         self.jobs[job].update({key:settings[key]})
                     except KeyError:
@@ -82,19 +80,36 @@ class BackUp(object):
             print('Backup configuration file not found or something wrong with the syntax.')
 
     
-    def run(self, detach=True, checkStatus=True, partitionChecked='/home', partitionPercentageWarn=90, swapPercentageWarn=40, USBPercentageWarn=90):
+    def run(self, detach=True, reportOutput=True, checkStatus=True, partitionChecked='/home', partitionPercentageWarn=90, swapPercentageWarn=40, USBPercentageWarn=90):
         text = ''
         if self.drive:
             out, error = self.drive.mount()
             if error:
                 return error
             logFile = tempfile.NamedTemporaryFile()              
+            outputLogFile = tempfile.NamedTemporaryFile()              
             summarylogFile = tempfile.NamedTemporaryFile()            
             for job, settings in self.jobs.iteritems():
                 sync = Sync()
                 sync.source      = settings['source']
                 sync.destination = os.path.join(self.drive.mountedPath, settings['destination'])
-                for key in self.__attributes:
+                for key in ['humanReadable',\
+                            'verbose',\
+                            'recursive',\
+                            'links',\
+                            'permissions',\
+                            'executability',\
+                            'extendedAttributes',\
+                            'owner',\
+                            'group',\
+                            'times',\
+                            'delete',\
+                            'ignoreErrors',\
+                            'force',\
+                            'exclude',\
+                            'include',\
+                            'archive',\
+                            'stats']:
                     try:
                         if settings[key] == 'False' or settings[key] == 'None':
                             delattr(sync.options, key)
@@ -109,6 +124,8 @@ class BackUp(object):
                     text += job + ' done\n'    
                     with open(logFile.name, 'a') as ifile:
                         ifile.write(open(partLogFile.name).read())
+                    with open(outputLogFile.name, 'a') as olfile:
+                        olfile.write('rsync stdout output :\n\n' + sync.output + '\n\nrsync stderr output :\n\n' + sync.error)
                     with open(summarylogFile.name, 'a') as sifile:
                         sifile.write(job + '\n\n')                        
                         sifile.write(tail(open(partLogFile.name), 13) + '\n\n')  
@@ -132,7 +149,10 @@ class BackUp(object):
                 now = time.asctime( time.localtime(time.time()))
                 pdfLogFile = os.path.join(self.__cwd, hostname + ' ' + now + ' full report.pdf')
                 pdfSummaryFile = os.path.join(self.__cwd, hostname + ' ' + now + ' summary.pdf')                
-                report2pdf = PyText2Pdf(ofile=pdfLogFile, ifilename=logFile.name, buffers=False)
+                if reportOutput:
+                    report2pdf = PyText2Pdf(ofile=pdfLogFile, ifilename=outputLogFile.name, buffers=False)
+                else:
+                    report2pdf = PyText2Pdf(ofile=pdfLogFile, ifilename=logFile.name, buffers=False)
                 report2pdf.convert()
                 summary2pdf = PyText2Pdf(ofile=pdfSummaryFile, ifilename=summarylogFile.name, buffers=False)
                 summary2pdf.convert()                
@@ -152,5 +172,5 @@ if __name__=='__main__':
     backUp.setDrive(device)
     backUp.enableEmail()
     backUp.setJobDetails(serial)    
-    backUp.run(detach=False)
+    backUp.run(detach=True, checkStatus=True, partitionChecked='/', partitionPercentageWarn=95, swapPercentageWarn=10, USBPercentageWarn=93)
 #    backUp.run()
