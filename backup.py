@@ -34,23 +34,7 @@ from utils.utils import checkSwapUsage
 class BackUp(object):
     def __init__(self):
         self.__cwd = os.path.abspath(os.path.dirname(__file__))
-        self.attributes = ['humanReadable',\
-                            'verbose',\
-                            'recursive',\
-                            'links',\
-                            'permissions',\
-                            'executability',\
-                            'extendedAttributes',\
-                            'owner',\
-                            'group',\
-                            'times',\
-                            'delete',\
-                            'ignoreErrors',\
-                            'force',\
-                            'exclude',\
-                            'include',\
-                            'archive',\
-                            'stats']
+        self.attributes = Sync().__dict__['_Sync__options'].keys()
     
     def setDrive(self, drive, partition='/dev/BackupHD'):
         self.drive = Drive(drive, partition)
