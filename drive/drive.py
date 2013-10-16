@@ -25,7 +25,7 @@ import shutil, tempfile, os, time
 from subprocess import Popen, PIPE
 
 class Drive(object):
-    def __init__(self, device, partition='/dev/BackupHD'):
+    def __init__(self, device, partition):
         if os.path.exists(device):
             self.device = device
             self.mountedPath = False    
