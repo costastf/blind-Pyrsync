@@ -112,7 +112,7 @@ The rsync options supported are :
      'stats'             :'--stats',             # give some file-transfer stats
      'archive'           :'--archive'            # archive mode; equals -rlptgoD (no -H,-A,-X)
 ```
-one can easyly add more, under the pyrsync.py wrapper. The "defaults" option when set, sets the following options to true (because of my needs):
+one can easily add more, under the pyrsync.py wrapper. The "defaults" option when set, sets the following options to true (because of my needs):
 ```
       humanReadable = True
       verbose = True
