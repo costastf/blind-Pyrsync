@@ -36,17 +36,20 @@ class Drive(object):
 
     def mount(self):
         self.mountedPath = tempfile.mkdtemp()
-        process = Popen(['/bin/mount', self.partition, self.mountedPath], stdout=PIPE, stderr=PIPE)
+        process = Popen(['/bin/mount', self.partition, self.mountedPath], \
+                        stdout=PIPE, stderr=PIPE)
         out, error = process.communicate()
         if error:
             print('Error in mounting, removing temp path {0}'.format(self.mountedPath))
+            print('Error : {0}'.format(error))
             shutil.rmtree(self.mountedPath)
         return out, error
 
     def umount(self):
         report = ''
         if self.mountedPath:
-            process = Popen(['/bin/umount', self.mountedPath], stdout=PIPE, stderr=PIPE)
+            process = Popen(['/bin/umount', self.mountedPath], \
+                            stdout=PIPE, stderr=PIPE)
             report = process.communicate()
             try:
                 shutil.rmtree(self.mountedPath)
@@ -55,7 +58,18 @@ class Drive(object):
         return report
     
     def detach(self):
-        process = Popen(['/usr/bin/udisks', '--detach', self.device], stdout=PIPE, stderr=PIPE)
+        process = Popen(['/usr/bin/udisks', '--detach', self.device], \
+                        stdout=PIPE, stderr=PIPE)
+        out, error = process.communicate()
+        return out, error    
+
+    def attach(self):
+        sysname = self.partition.split('/')[-1]
+        process = Popen(['/sbin/udevadm', \
+                         'trigger', \
+                         '--action=change', \
+                         '--sysname-match={0}'.format(sysname)], \
+                         stdout=PIPE, stderr=PIPE)
         out, error = process.communicate()
         return out, error    
 

@@ -29,7 +29,17 @@ class Sync(object):
     class Options(object):
         def __init__(self, options):
             for key,value in options.items():
-                self.__dict__[key] = value    
+                self.__dict__[key] = value  
+        def defaults(self):
+            options = ['humanReadable', 'verbose', 'links', 'recursive', \
+                       'permissions', 'executability', 'owner', 'group', \
+                       'times', 'delete', 'ignoreErrors', 'force', \
+                       'stats']   
+            if sys.platform == 'linux2':
+                options.append('extendedAttributes')
+            for option in options:
+                self.__dict__[option] = True
+            
  
     def __init__(self):
         self.output = ''
@@ -50,7 +60,7 @@ class Sync(object):
                            'exclude'           :'--exclude=',          # exclude files matching PATTERN
                            'include'           :'--include=',          # don't exclude files matching PATTERN
                            'logFile'           :'--log-file=',         # log what we're doing to the specified FILE 
-                           'stats'             :'--stats',              # give some file-transfer stats
+                           'stats'             :'--stats',             # give some file-transfer stats
                            'archive'           :'--archive'            # archive mode; equals -rlptgoD (no -H,-A,-X)
                        }
         self.errorCodes = { '1' : 'Syntax or usage error' , 
@@ -71,24 +81,21 @@ class Sync(object):
                     	    '30': 'Timeout in data send/receive'
                 		}
         self.options = self.Options(self.__options)
-        self.options.humanReadable = True
-        self.options.verbose = True
-        self.options.recursive = True
-        self.options.links = True
-        self.options.permissions = True
-        self.options.executability = True
+        self.options.humanReadable = False
+        self.options.verbose = False
+        self.options.recursive = False
+        self.options.links = False
+        self.options.permissions = False
+        self.options.executability = False
         self.options.archive = False
-        if sys.platform == 'win32':
-            self.options.extendedAttributes = False
-        else:
-            self.options.extendedAttributes = True
-        self.options.owner = True
-        self.options.group = True
-        self.options.times = True
-        self.options.delete = True
-        self.options.ignoreErrors = True
-        self.options.force = True
-        self.options.stats = True        
+        self.options.extendedAttributes = False
+        self.options.owner = False
+        self.options.group = False
+        self.options.times = False
+        self.options.delete = False
+        self.options.ignoreErrors = False
+        self.options.force = False
+        self.options.stats = False
         self.options.exclude = None
         self.options.include = None
         self.options.logFile = None

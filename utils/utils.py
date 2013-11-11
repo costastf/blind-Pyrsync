@@ -69,19 +69,3 @@ def checkPartitionUsage(partition, threshold=90):
         text = 'Warning! Partition usage has exceeded {0}% and is {1}%'.format(threshold, percentage)
     return text 
 
-
-def checkSwapUsage(threshold=40):
-    free = Popen(['free'],stdout=PIPE, stderr=PIPE).stdout.read()        
-    for line in free.splitlines():
-        if line.startswith('Swap:'):
-            total = int(line.split()[1])
-            used = int(line.split()[2])            
-            free = int(line.split()[3])            
-            break
-    percentage = 100 * used / total        
-    if percentage < threshold:
-        text = 'Swap usage OK'
-    elif percentage >= threshold:
-        text = 'Warning! Swap usage has exceeded {0}% and is {1}%'.format(threshold, percentage)        
-    return text
-

@@ -29,14 +29,13 @@ from Email.Email import Email
 from pytxt2pdf.pyText2Pdf import PyText2Pdf
 from utils.utils import tail
 from utils.utils import checkPartitionUsage
-from utils.utils import checkSwapUsage
 
 class BackUp(object):
     def __init__(self):
         self.__cwd = os.path.abspath(os.path.dirname(__file__))
         self.attributes = Sync().__dict__['_Sync__options'].keys()
     
-    def setDrive(self, drive, partition='/dev/BackupHD'):
+    def setDrive(self, drive, partition):
         self.drive = Drive(drive, partition)
 
     def enableEmail(self, emailConfigFile = 'email.json'):
@@ -54,92 +53,132 @@ class BackUp(object):
         self.jobs = {}
         try:
             self.__configuration = json.loads(open(os.path.join(self.__cwd, 'conf', serial.strip() + '.json')).read())
-            for job, settings in self.__configuration.iteritems():
+            for job, settings in self.__configuration['jobs'].iteritems():
                 self.jobs[job] = {'source':settings['source'], 'destination':settings['destination']}
+                try:
+                    self.jobs[job].update({'defaults':settings['defaults']})                    
+                except KeyError:
+                    self.jobs[job].update({'defaults':False})                                        
                 for key in self.attributes:
                     try:
                         self.jobs[job].update({key:settings[key]})
                     except KeyError:
                         pass
+            self.enabled = self.__configuration['options']['enabled']                    
+            self.eject   = self.__configuration['options']['eject']                                
+            self.warning = self.__configuration['options']['percentageWarning']            
+            self.stdout  = self.__configuration['report']['stdout']
+            self.log     = self.__configuration['report']['log']                                
+            self.summary = self.__configuration['report']['summary']            
         except:
             print('Backup configuration file not found or something wrong with the syntax.')
-
     
-    def run(self, detach=True, reportOutput=True, checkStatus=True, partitionChecked='/home', partitionPercentageWarn=90, swapPercentageWarn=40, USBPercentageWarn=90):
+    def __emailReport(self, text, logFile, stdoutFile, summaryFile):
+        attach = []
+        import socket
+        hostname = socket.gethostname()
+        now = time.asctime( time.localtime(time.time()))
+        if self.log:
+            log = os.path.join(self.__cwd, hostname + ' ' + now + ' full report.pdf')            
+            log2pdf = PyText2Pdf(ofile=log, ifilename=logFile.name, buffers=False)
+            log2pdf.convert()
+            attach.append(log)
+        if self.stdout:
+            stdout = os.path.join(self.__cwd, hostname + ' ' + now + ' stdout printout.pdf')
+            stdout2pdf = PyText2Pdf(ofile=stdout, ifilename=stdoutFile.name, buffers=False)
+            stdout2pdf.convert()   
+            attach.append(stdout)
+        if self.summary:
+            summary = os.path.join(self.__cwd, hostname + ' ' + now + ' summary.pdf')                
+            summary2pdf = PyText2Pdf(ofile=summary, ifilename=summaryFile.name, buffers=False)
+            summary2pdf.convert()           
+            attach.append(summary)                
+        self.message.send( self.sender, \
+                           self.recipients, \
+                           self.subject, \
+                           text, \
+                           attachments=','.join(attach))    
+        if self.log:                           
+            os.unlink(log)
+        if self.stdout:            
+            os.unlink(stdout)
+        if self.summary:            
+            os.unlink(summary)
+            
+    def __jobsRun(self):
         text = ''
-        if self.drive:
+        logFile     = tempfile.NamedTemporaryFile()              
+        stdoutFile  = tempfile.NamedTemporaryFile()              
+        summaryFile = tempfile.NamedTemporaryFile()            
+        for job, settings in self.jobs.iteritems():
+            sync = Sync()
+            sync.source      = settings['source']
+            sync.destination = os.path.join(self.drive.mountedPath, settings['destination'])
+            if settings['defaults']:
+                sync.options.defaults()            
+            for key in self.attributes:
+                try:
+                    if not settings[key]:
+                        delattr(sync.options, key)
+                    else:
+                        setattr(sync.options, key, settings[key])
+                except KeyError:
+                    pass     
+
+            partLogFile = tempfile.NamedTemporaryFile()  
+            setattr(sync.options, 'logFile', partLogFile.name)
+            sync.run()
+            text += '{0} done\n'.format(job)    
+            with open(logFile.name, 'a') as ifile:
+                ifile.write(open(partLogFile.name).read())
+            with open(stdoutFile.name, 'a') as olfile:
+                olfile.write('rsync stdout output :\n\n {0}'.format(sync.output))
+                if sync.error:
+                    olfile.write('rsync stderr output :\n\n {0}'.format(sync.error))
+            with open(summaryFile.name, 'a') as sifile:
+                sifile.write(job + '\n\n')                        
+                sifile.write(tail(open(partLogFile.name), 13) + '\n\n')  
+        with open(summaryFile.name, 'a') as sifile:
+            sifile.write(checkPartitionUsage(self.drive.mountedPath ,self.warning))
+        return text, logFile, stdoutFile, summaryFile
+    
+    def run(self):
+        if not self.enabled:
+            out, error = self.drive.attach()
+            raise SystemExit
+        else:
             out, error = self.drive.mount()
             if error:
-                return error
-            logFile = tempfile.NamedTemporaryFile()              
-            outputLogFile = tempfile.NamedTemporaryFile()              
-            summarylogFile = tempfile.NamedTemporaryFile()            
-            for job, settings in self.jobs.iteritems():
-                sync = Sync()
-                sync.source      = settings['source']
-                sync.destination = os.path.join(self.drive.mountedPath, settings['destination'])
-                for key in  self.attributes:
-                    try:
-                        if settings[key] == 'False' or settings[key] == 'None':
-                            delattr(sync.options, key)
-                        else:
-                            setattr(sync.options, key, settings[key])
-                    except KeyError:
-                        pass     
-                partLogFile = tempfile.NamedTemporaryFile()  
-                setattr(sync.options, 'logFile', partLogFile.name)
-                sync.run()
-                if self.email:
-                    text += job + ' done\n'    
-                    with open(logFile.name, 'a') as ifile:
-                        ifile.write(open(partLogFile.name).read())
-                    with open(outputLogFile.name, 'a') as olfile:
-                        olfile.write('rsync stdout output :\n\n' + sync.output + '\n\nrsync stderr output :\n\n' + sync.error)
-                    with open(summarylogFile.name, 'a') as sifile:
-                        sifile.write(job + '\n\n')                        
-                        sifile.write(tail(open(partLogFile.name), 13) + '\n\n')  
-                    #os.unlink(partLogFile.name)
-            if checkStatus:
-                with open(summarylogFile.name, 'a') as sifile:
-                    sifile.write(checkPartitionUsage(partitionChecked, partitionPercentageWarn) + '\n\n')
-                    sifile.write(checkSwapUsage(swapPercentageWarn) + '\n\n')                             
-                    sifile.write(checkPartitionUsage(self.drive.mountedPath ,USBPercentageWarn) + '\n\n')
-            time.sleep(1)
-            out, error = self.drive.umount()
-            if error:
-                print(error)
-            if detach:
-                out, error = self.drive.detach()
-                if error:
-                    print(error)                
-            if self.email:
-                import socket
-                hostname = socket.gethostname()
-                now = time.asctime( time.localtime(time.time()))
-                pdfLogFile = os.path.join(self.__cwd, hostname + ' ' + now + ' full report.pdf')
-                pdfSummaryFile = os.path.join(self.__cwd, hostname + ' ' + now + ' summary.pdf')                
-                if reportOutput:
-                    report2pdf = PyText2Pdf(ofile=pdfLogFile, ifilename=outputLogFile.name, buffers=False)
-                else:
-                    report2pdf = PyText2Pdf(ofile=pdfLogFile, ifilename=logFile.name, buffers=False)
-                report2pdf.convert()
-                summary2pdf = PyText2Pdf(ofile=pdfSummaryFile, ifilename=summarylogFile.name, buffers=False)
-                summary2pdf.convert()                
-                self.message.send( self.sender, self.recipients, self.subject, text, attachments=pdfLogFile + ',' + pdfSummaryFile)    
-                os.unlink(pdfLogFile)
-                os.unlink(pdfSummaryFile)                
+                print(error)        
+                raise SystemExit
+        text, logFile, stdoutFile, summaryFile = self.__jobsRun()   
+        out, error = self.drive.umount()
+        if error:
+            print(error)
+        if self.email:
+            self.__emailReport(text, logFile, stdoutFile, summaryFile)
+        time.sleep(2)
+        if self.eject:
+            print('Detaching drive')
+            out, error = self.drive.detach()
+        else:
+            print('Attaching drive')            
+            out, error = self.drive.attach()
+        if error:
+            print(error)   
+
                 
 if __name__=='__main__':
     try:
-        serial = sys.argv[1]
-        device = sys.argv[2]
+        serial      = sys.argv[1]
+        device      = sys.argv[2]
+        partition   = sys.argv[3]        
     except IndexError:
         print('Not enough arguments. Exiting')
         raise SystemExit
     
     backUp = BackUp()
-    backUp.setDrive(device)
+    backUp.setDrive(device, partition)
     backUp.enableEmail()
     backUp.setJobDetails(serial)    
-    backUp.run(detach=True, checkStatus=True, partitionChecked='/', partitionPercentageWarn=95, swapPercentageWarn=10, USBPercentageWarn=93)
-#    backUp.run()
+    backUp.run()

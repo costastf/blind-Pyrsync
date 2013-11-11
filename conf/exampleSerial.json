@@ -1,19 +1,35 @@
-{ "Backup Job Name 1" :
-    { "source"      : "/absolute/path/to/the/directory/to/be/rsynced",
-      "destination" : "relative/path/to/the/destination/drive"
+{ "jobs" :
+    { "Backup Job Name 1" :
+        { "source"      : "/absolute/path/to/the/directory/to/be/rsynced",
+          "destination" : "relative/path/to/the/destination/drive"
+        },
+      "Variable Backup Job Name 2" :
+        { "source"      : "/absolute/path/to/the/directory/to/be/rsynced",
+          "destination" : "relative/path/to/the/destination/drive",
+          "defaults"    : true,
+          "delete"      : false
+        },
+      "Job whatever" :
+        { "source"      : "/absolute/path/to/the/directory/to/be/rsynced",
+          "destination" : "bin",
+          "exclude"     : "*.sh *.mp3"        
+        },
+      "ETC Backup" :
+        { "source"      : "/etc",
+          "destination" : "etc"
+        }        
     },
-  "Variable Backup Job Name 2" :
-    { "source"      : "/absolute/path/to/the/directory/to/be/rsynced",
-      "destination" : "relative/path/to/the/destination/drive",
-      "delete"      : "False"   
+    
+  "options" :
+    { "enabled" : true,
+      "eject"   : true,
+      "percentageWarning" : 90
     },
-  "Job whatever" :
-    { "source"      : "/absolute/path/to/the/directory/to/be/rsynced",
-      "destination" : "bin",
-      "exclude"     : "*.sh *.mp3"        
-    },
-  "ETC Backup" :
-    { "source"      : "/etc",
-      "destination" : "etc"
-    }        
+    
+  "report" :
+  { "stdout"    : false,
+    "log"       : false,
+    "summary"   : true
+  }
 }
+
