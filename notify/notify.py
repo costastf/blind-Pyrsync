@@ -27,8 +27,9 @@ import os
 class Notify(object):
     def __init__(self):
         if sys.platform == 'linux2':
-            from pynotify import Notification
-            self.__notifier = Notification
+            import pynotify
+            pynotify.init('Summary')
+            self.__notifier = pynotify.Notification
             self.message = self.__message
     
     def __message(self, header, message):

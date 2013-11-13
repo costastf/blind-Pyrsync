@@ -54,7 +54,8 @@ class BackUp(object):
             self.subject    = self.__email['settings']['subject']
             self.email = True
         except:
-            print('Email configuration file not found, or something wrong with the settings.')        
+            print('Email configuration file not found, or something wrong with the settings.')    
+            raise SystemExit    
             
     def setJobDetails(self, serial):
         self.jobs = {}
@@ -83,6 +84,7 @@ class BackUp(object):
             self.summary = self.__configuration['report']['summary']            
         except:
             print('Backup configuration file not found or something wrong with the syntax.')
+            raise SystemExit            
     
     def __emailReport(self, text, logFile, stdoutFile, summaryFile):
         attach = []
