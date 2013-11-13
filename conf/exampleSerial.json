@@ -23,7 +23,8 @@
   "options" :
     { "enabled" : true,
       "eject"   : true,
-      "percentageWarning" : 90
+      "percentageWarning" : 90,
+      "gui"     : true
     },
     
   "report" :

@@ -28,6 +28,7 @@ This rule takes care the showing of the device to the user in case of desktop sy
 
 The ATTRS{idVendor}=="" and ATTRS{idProduct}=="" can of course be ommited. They are used just for the highly unlikely case were there are two drives with the same serial. 
 
+There can be as many rule couples as drives one would want to use for backup.
 
 After the udev rule is set a file named email.json should be created under conf directory with the following structure
 
@@ -41,7 +42,7 @@ After the udev rule is set a file named email.json should be created under conf 
 }
 ```
 
-The script doesn't support smtp authentication. It is assumed that one can send email through the provider's smtp service. The recipient or recipients(comma delimited multiple mails: "test@gmail.com,test2@gmail.com") will receive an email with the report of the finished jobs.
+The script doesn't support smtp authentication yet.(It will propably do sometime.) It is assumed that one can send email through the provider's smtp service. The recipient or recipients(comma delimited multiple mails: "test@gmail.com,test2@gmail.com") will receive an email with the report of the finished jobs.
 
 Finally under conf directory we create the backup jobs as json files. The name should be the drive's serial number with the json extension. Example : 116AC2101219.json
 
@@ -73,7 +74,8 @@ It's contents should be in the form of :
   "options" :
     { "enabled" : true,
       "eject"   : true,
-      "percentageWarning" : 90
+      "percentageWarning" : 90,
+      "gui"     : true
     },
     
   "report" :
@@ -134,7 +136,7 @@ Of course all options can be overriden. So one could set "defaults" : true which
 One can remove any of the supported settings by setting the variable to False ("delete": false) in the recipe, or set new ones. The logFile is set automatically by the main script when it is run, so even if it is set in the json configuration file the variable will be overriden.
 
 The options are "enabled" for the rsync to run, one could set it to false so the backup would not run and he/she could have access to the drive normaly.
-"eject" is for automatic detachment of the drive after the rsync. Of course if the "enabled" is set to false the "eject" is ignored. If eject is not set then the drive gets automounted just like it would without the backup job. This is useful for desktop machines with gui where the user would probably want to use or verify the backup in the drive. The "percentageWarning" is the drive's percentage usage above which one would get a warning in the end of the summary file. Something like 90 is a reasonable value. But then again, that is all relevant.. 
+"eject" is for automatic detachment of the drive after the rsync. Of course if the "enabled" is set to false the "eject" is ignored. If eject is not set then the drive gets automounted just like it would without the backup job. This is useful for desktop machines with gui where the user would probably want to use or verify the backup in the drive. The "percentageWarning" is the drive's percentage usage above which one would get a warning in the end of the summary file. Something like 90 is a reasonable value. But then again, that is all relevant.. The last option, "gui" if set sends two notifications to the GUI, one for the start of the backup and one for the end of the back and the status of the device after that. (Attached or ejected, according to the setting of "eject") The "gui" in linux depends on the pynotify library. So that has to be installed or the notifications will not work, sillently of course.
 
 The reporting has three possible outputs. "stdout" will send the output of the rsync command, "log" will send the rsync logfile and "summary" will send a summary of all the jobs. They can be set in any combination. WARNING! The stdout and log can be quite large in a big job. Please make sure that the files can fit through your smtp.
 
@@ -150,6 +152,8 @@ One should have udisks installed for the eject to work. In ubuntu desktop it is 
 
 One should check first that the drive is mountable by the system (filesystem supported, read - write). 
 If the drive's filesystem is NTFS make sure that the mount command mounts the drive with ntfs-3g so it can write to it.
+
+If "gui" is set the pynotify library should be installed in linux.
 
 If the drive is FAT then the script will spit errors if one tries to move file attributes, since FAT does not support Linux file attributes. This is rsync's errors, not the script's.
 

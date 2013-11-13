@@ -27,6 +27,7 @@ from pyrsync.pyrsync import Sync
 from drive.drive import Drive
 from Email.Email import Email
 from pytxt2pdf.pyText2Pdf import PyText2Pdf
+from notify.notify import Notify
 from utils.utils import tail
 from utils.utils import checkPartitionUsage
 
@@ -34,6 +35,12 @@ class BackUp(object):
     def __init__(self):
         self.__cwd = os.path.abspath(os.path.dirname(__file__))
         self.attributes = Sync().__dict__['_Sync__options'].keys()
+        self.email = False
+        try:
+            self.__notify = Notify()
+            self.guiAble = True
+        except ImportError:
+            self.guiAble = False
     
     def setDrive(self, drive, partition):
         self.drive = Drive(drive, partition)
@@ -66,7 +73,11 @@ class BackUp(object):
                         pass
             self.enabled = self.__configuration['options']['enabled']                    
             self.eject   = self.__configuration['options']['eject']                                
-            self.warning = self.__configuration['options']['percentageWarning']            
+            self.warning = self.__configuration['options']['percentageWarning']
+            if self.guiAble:            
+                self.gui = self.__configuration['options']['gui']               
+            else:
+                self.gui = False                
             self.stdout  = self.__configuration['report']['stdout']
             self.log     = self.__configuration['report']['log']                                
             self.summary = self.__configuration['report']['summary']            
@@ -151,19 +162,24 @@ class BackUp(object):
             if error:
                 print(error)        
                 raise SystemExit
+        if self.gui:
+            self.__notify.message('Pyrsync Backup','Drive inserted, starting job(s)...')
         text, logFile, stdoutFile, summaryFile = self.__jobsRun()   
         out, error = self.drive.umount()
         if error:
             print(error)
         if self.email:
             self.__emailReport(text, logFile, stdoutFile, summaryFile)
-        time.sleep(2)
+        # A little time to settle
+        time.sleep(4)
         if self.eject:
-            print('Detaching drive')
+            message = 'Job(s) ended, ejecting drive...'
             out, error = self.drive.detach()
         else:
-            print('Attaching drive')            
+            message = 'Job(s) ended, attaching drive...'
             out, error = self.drive.attach()
+        if self.gui:
+                self.__notify.message('Pyrsync Backup', message)   
         if error:
             print(error)   
 
