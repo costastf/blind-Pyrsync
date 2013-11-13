@@ -23,6 +23,7 @@ __date__      = '13/11/2013'
 
 import sys
 import os
+from subprocess import Popen,PIPE
 
 class Notify(object):
     def __init__(self):
@@ -31,9 +32,16 @@ class Notify(object):
             pynotify.init('Summary')
             self.__notifier = pynotify.Notification
             self.message = self.__message
+            who = Popen(['who'], stdout=PIPE).stdout.read()
+            for line in who.splitlines():
+                if 'tty7' in line:
+                    self.user = line.split()[0]            
+                    self.display = line.split()[-1].replace('(','').replace(')','')
+                    break            
     
     def __message(self, header, message):
         if sys.platform == 'linux2':
-            os.putenv('DISPLAY', ':0')
+            os.putenv('XAUTHORITY', '/home/{0}/.Xauthority'.format(self.user))
+            os.putenv('DISPLAY', self.display)
             self.__notifier(header, message).show()
 
