@@ -2,7 +2,7 @@ blind-Pyrsync
 =============
 
 Blind backup solution (setup, plug drive, get notice, unplug drive) based on an rsync python wrapper. 
-Tested with Ubuntu 10.4, Ubuntu 12.4 Desktop and Debian 6 Server.
+Tested with Ubuntu 10.4, Ubuntu 12.4 Desktop, Ubuntu 13.10 Desktop and Debian 6 Server.
 
 The idea behind this srcipt is that one creates one or more recipes for a backup in plain json under the conf directory
 and the script calls and executes the job depending on the drive inserted. Under ubuntu / debian one would create a udev rule under /etc/udev/rules.d/99-usb-drive.rules or any other name that suits. The rule should consist of one of the following : 
