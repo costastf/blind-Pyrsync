@@ -35,8 +35,11 @@ class Notify(object):
             who = Popen(['who'], stdout=PIPE).stdout.read()
             for line in who.splitlines():
                 if 'tty7' in line:
-                    self.user = line.split()[0]            
-                    self.display = line.split()[-1].replace('(','').replace(')','')
+                    self.user = line.split()[0]  
+                    try:          
+                        self.display = line.split()[4].replace('(','').replace(')','')
+                    except IndexError:
+                        self.display = ':0'
                     break            
     
     def __message(self, header, message):
