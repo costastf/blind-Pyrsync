@@ -25,10 +25,50 @@ import sys
 import os
 from subprocess import Popen,PIPE
 
+if sys.platform == 'linux2':
+    import pynotify
+if sys.platform == 'win32':
+    from threading import Thread
+    import win32api
+    import win32gui
+    import win32con
+    import struct
+    import time
+
+#Gist from https://gist.github.com/wontoncc/1808234 THNX!!!!
+class WindowsBalloonTip(object):
+    def __init__(self):
+        pass
+    def message(self, title, msg):
+        message_map = {win32con.WM_DESTROY: self.OnDestroy,}
+        wc = win32gui.WNDCLASS()
+        hinst = wc.hInstance = win32api.GetModuleHandle(None)
+        wc.lpszClassName = "PythonTaskbar"
+        wc.lpfnWndProc = message_map
+        classAtom = win32gui.RegisterClass(wc)
+        style = win32con.WS_OVERLAPPED | win32con.WS_SYSMENU
+        self.hwnd = win32gui.CreateWindow( classAtom, "Taskbar", style, \
+                0, 0, win32con.CW_USEDEFAULT, win32con.CW_USEDEFAULT, \
+                0, 0, hinst, None)
+        win32gui.UpdateWindow(self.hwnd)
+        hicon = win32gui.LoadIcon(0, win32con.IDI_APPLICATION)            
+        flags = win32gui.NIF_ICON | win32gui.NIF_MESSAGE | win32gui.NIF_TIP
+        nid = (self.hwnd, 0, flags, win32con.WM_USER+20, hicon, "tooltip")
+        win32gui.Shell_NotifyIcon(win32gui.NIM_ADD, nid)
+        win32gui.Shell_NotifyIcon(win32gui.NIM_MODIFY, \
+                         (self.hwnd, 0, win32gui.NIF_INFO, win32con.WM_USER+20,\
+                          hicon, "Balloon  tooltip",msg,200,title))
+        time.sleep(10)
+        win32gui.DestroyWindow(self.hwnd)
+    def OnDestroy(self, hwnd, msg, wparam, lparam):
+        nid = (self.hwnd, 0)
+        win32gui.Shell_NotifyIcon(win32gui.NIM_DELETE, nid)
+        win32gui.PostQuitMessage(0)
+
+
 class Notify(object):
     def __init__(self):
         if sys.platform == 'linux2':
-            import pynotify
             pynotify.init('Summary')
             self.__notifier = pynotify.Notification
             self.message = self.__message
@@ -41,10 +81,15 @@ class Notify(object):
                     except IndexError:
                         self.display = ':0'
                     break            
-    
+        if sys.platform == 'win32':
+            self.__notifier = WindowsBalloonTip()
+            self.message = self.__message
+            
     def __message(self, header, message):
         if sys.platform == 'linux2':
             os.putenv('XAUTHORITY', '/home/{0}/.Xauthority'.format(self.user))
             os.putenv('DISPLAY', self.display)
             self.__notifier(header, message).show()
-
+        if sys.platform == 'win32':
+            tip = Thread(target=self.__notifier.message, args=(header, message))
+            tip.start()                 
