@@ -117,7 +117,9 @@ class BackUp(object):
             os.unlink(stdout)
         if self.summary:            
             os.unlink(summary)
-            summaryFile.close()
+        logFile.close()            
+        stdoutFile.close()            
+        summaryFile.close()
         os.unlink(logFile.name)            
         os.unlink(stdoutFile.name)                        
         os.unlink(summaryFile.name)            
