@@ -1,0 +1,22 @@
+{ "jobs" :
+    { "Backup Job Name 1" :
+        { "source"      : "c:\\OEM",
+          "destination" : "",
+          "defaults"    : true
+        }
+    },
+    
+  "options" :
+    { "enabled" : true,
+      "eject"   : false,
+      "percentageWarning" : 2,
+      "gui"     : true
+    },
+    
+  "report" :
+  { "stdout"    : false,
+    "log"       : false,
+    "summary"   : true
+  }
+}
+

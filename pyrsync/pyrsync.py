@@ -111,8 +111,8 @@ class Sync(object):
             binary = Popen(['which', executable], stdout=PIPE).stdout.read().strip()
         elif sys.platform == 'win32':
             executable = 'rsync.exe'
-            if executable in os.listdir('.'):
-                binary = os.path.join(os.getcwd(), executable)              
+            if executable in os.listdir('pyrsync'):
+                binary = os.path.join(os.getcwd(),'pyrsync', executable)              
             else:
                 for path in os.environ['PATH'].split(os.pathsep):
                     if os.path.isfile(os.path.join(path, executable)):

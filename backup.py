@@ -113,16 +113,20 @@ class BackUp(object):
                            attachments=','.join(attach))    
         if self.log:                           
             os.unlink(log)
-        if self.stdout:            
+        if self.stdout: 
             os.unlink(stdout)
         if self.summary:            
             os.unlink(summary)
+            summaryFile.close()
+        os.unlink(logFile.name)            
+        os.unlink(stdoutFile.name)                        
+        os.unlink(summaryFile.name)            
             
     def __jobsRun(self):
         text = ''
-        logFile     = tempfile.NamedTemporaryFile()              
-        stdoutFile  = tempfile.NamedTemporaryFile()              
-        summaryFile = tempfile.NamedTemporaryFile()            
+        logFile     = tempfile.NamedTemporaryFile(delete=False)              
+        stdoutFile  = tempfile.NamedTemporaryFile(delete=False)              
+        summaryFile = tempfile.NamedTemporaryFile(delete=False)            
         for job, settings in self.jobs.iteritems():
             sync = Sync()
             sync.source      = settings['source']
@@ -138,7 +142,7 @@ class BackUp(object):
                 except KeyError:
                     pass     
 
-            partLogFile = tempfile.NamedTemporaryFile()  
+            partLogFile = tempfile.NamedTemporaryFile(delete=False)  
             setattr(sync.options, 'logFile', partLogFile.name)
             sync.run()
             text += '{0} done\n'.format(job)    
@@ -151,8 +155,9 @@ class BackUp(object):
             with open(summaryFile.name, 'a') as sifile:
                 sifile.write(job + '\n\n')                        
                 sifile.write(tail(open(partLogFile.name), 13) + '\n\n')  
-        with open(summaryFile.name, 'a') as sifile:
-            sifile.write(checkPartitionUsage(self.drive.mountedPath ,self.warning))
+        if sys.platform == 'linux2':
+            with open(summaryFile.name, 'a') as sifile:
+                sifile.write(checkPartitionUsage(self.drive.mountedPath ,self.warning))
         return text, logFile, stdoutFile, summaryFile
     
     def run(self):
@@ -173,7 +178,7 @@ class BackUp(object):
         if self.email:
             self.__emailReport(text, logFile, stdoutFile, summaryFile)
         # A little time to settle
-        time.sleep(4)
+        time.sleep(5)
         if self.eject:
             message = 'Job(s) ended, ejecting drive...'
             out, error = self.drive.detach()

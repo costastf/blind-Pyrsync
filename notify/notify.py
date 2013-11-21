@@ -38,18 +38,18 @@ if sys.platform == 'win32':
 #Gist from https://gist.github.com/wontoncc/1808234 THNX!!!!
 class WindowsBalloonTip(object):
     def __init__(self):
-        pass
-    def message(self, title, msg):
-        message_map = {win32con.WM_DESTROY: self.OnDestroy,}
+        message_map = {win32con.WM_DESTROY: self.__OnDestroy,}
         wc = win32gui.WNDCLASS()
-        hinst = wc.hInstance = win32api.GetModuleHandle(None)
+        self.hinst = wc.hInstance = win32api.GetModuleHandle(None)
         wc.lpszClassName = "PythonTaskbar"
         wc.lpfnWndProc = message_map
-        classAtom = win32gui.RegisterClass(wc)
-        style = win32con.WS_OVERLAPPED | win32con.WS_SYSMENU
-        self.hwnd = win32gui.CreateWindow( classAtom, "Taskbar", style, \
+        self.classAtom = win32gui.RegisterClass(wc)
+        self.style = win32con.WS_OVERLAPPED | win32con.WS_SYSMENU
+
+    def message(self, title, msg):
+        self.hwnd = win32gui.CreateWindow( self.classAtom, "Taskbar", self.style, \
                 0, 0, win32con.CW_USEDEFAULT, win32con.CW_USEDEFAULT, \
-                0, 0, hinst, None)
+                0, 0, self.hinst, None)
         win32gui.UpdateWindow(self.hwnd)
         hicon = win32gui.LoadIcon(0, win32con.IDI_APPLICATION)            
         flags = win32gui.NIF_ICON | win32gui.NIF_MESSAGE | win32gui.NIF_TIP
@@ -58,9 +58,9 @@ class WindowsBalloonTip(object):
         win32gui.Shell_NotifyIcon(win32gui.NIM_MODIFY, \
                          (self.hwnd, 0, win32gui.NIF_INFO, win32con.WM_USER+20,\
                           hicon, "Balloon  tooltip",msg,200,title))
-        time.sleep(10)
+        time.sleep(5)
         win32gui.DestroyWindow(self.hwnd)
-    def OnDestroy(self, hwnd, msg, wparam, lparam):
+    def __OnDestroy(self, hwnd, msg, wparam, lparam):
         nid = (self.hwnd, 0)
         win32gui.Shell_NotifyIcon(win32gui.NIM_DELETE, nid)
         win32gui.PostQuitMessage(0)

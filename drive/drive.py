@@ -21,20 +21,41 @@ __author__    = 'Costas Tyfoxylos <costas.tyf@gmail.com>'
 __docformat__ = 'plaintext'
 __date__      = '30/09/2013'
 
-import shutil, tempfile, os, time
+import shutil
+import tempfile
+import os
+import time
+import sys
 from subprocess import Popen, PIPE
 
 class Drive(object):
     def __init__(self, device, partition):
-        if os.path.exists(device):
-            self.device = device
-            self.mountedPath = False    
-            self.partition = partition        
-        else:
-            print('Device not found. Exiting')
-            raise SystemExit
+        if sys.platform == 'linux2':
+            if os.path.exists(device):
+                self.device = device
+                self.mountedPath = False    
+                self.partition = partition        
+                self.mount = self.__mountL
+                self.umount = self.__umountL
+                self.detach = self.__detachL
+                self.attach = self.__attachL                                                
+            else:
+                print('Device not found. Exiting')
+                raise SystemExit
+        elif sys.platform == 'win32':
+            if os.path.exists(partition):
+                self.device = device
+                self.partition = partition        
+                self.mountedPath = partition                
+                self.mount = self.__mountW
+                self.umount = self.__umountW
+                self.detach = self.__detachW
+                self.attach = self.__attachW                                                
+            else:
+                print('Device not found. Exiting')
+                raise SystemExit
 
-    def mount(self):
+    def __mountL(self):
         self.mountedPath = tempfile.mkdtemp()
         process = Popen(['/bin/mount', self.partition, self.mountedPath], \
                         stdout=PIPE, stderr=PIPE)
@@ -45,7 +66,10 @@ class Drive(object):
             shutil.rmtree(self.mountedPath)
         return out, error
 
-    def umount(self):
+    def __mountW(self):
+        return True, False
+
+    def __umountL(self):
         report = ''
         if self.mountedPath:
             process = Popen(['/bin/umount', self.mountedPath], \
@@ -56,14 +80,20 @@ class Drive(object):
             except OSError:
                 print('Temp mounted directory not found')
         return report
+
+    def __umountW(self):    
+        return True, False
     
-    def detach(self):
+    def __detachL(self):
         process = Popen(['/usr/bin/udisks', '--detach', self.device], \
                         stdout=PIPE, stderr=PIPE)
         out, error = process.communicate()
         return out, error    
 
-    def attach(self):
+    def __detachW(self):    
+        pass
+    
+    def __attachL(self):
         sysname = self.partition.split('/')[-1]
         process = Popen(['/sbin/udevadm', \
                          'trigger', \
@@ -73,3 +103,5 @@ class Drive(object):
         out, error = process.communicate()
         return out, error    
 
+    def __attachW(self):
+        return True, False
