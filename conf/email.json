@@ -1,7 +1,0 @@
-{ "settings" :
-    { "smtp"        : "smtp.eteth.lan", 
-      "sender"      : "backup@eteth.lan",
-      "recipients"  : "ctifoxilos@eteth.lan",      
-      "subject"     : "blind backup report"       
-    }
-} 
