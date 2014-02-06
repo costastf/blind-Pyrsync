@@ -27,7 +27,6 @@ from pyrsync.pyrsync import Sync
 from drive.drive import Drive
 from Email.Email import Email
 from pytxt2pdf.pyText2Pdf import PyText2Pdf
-from notify.notify import Notify
 from utils.utils import tail
 from utils.utils import checkPartitionUsage
 
@@ -37,6 +36,7 @@ class BackUp(object):
         self.attributes = Sync().__dict__['_Sync__options'].keys()
         self.email = False
         try:
+            from notify.notify import Notify
             self.__notify = Notify()
             self.guiAble = True
         except ImportError:
@@ -157,9 +157,8 @@ class BackUp(object):
             with open(summaryFile.name, 'a') as sifile:
                 sifile.write(job + '\n\n')                        
                 sifile.write(tail(open(partLogFile.name), 13) + '\n\n')  
-        if sys.platform == 'linux2':
-            with open(summaryFile.name, 'a') as sifile:
-                sifile.write(checkPartitionUsage(self.drive.mountedPath ,self.warning))
+                if sys.platform == 'linux2':
+                    sifile.write(checkPartitionUsage(self.drive.mountedPath ,self.warning))
         return text, logFile, stdoutFile, summaryFile
     
     def run(self):
