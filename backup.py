@@ -159,6 +159,7 @@ class BackUp(object):
                 sifile.write(tail(open(partLogFile.name), 13) + '\n\n')  
                 if sys.platform == 'linux2':
                     sifile.write(checkPartitionUsage(self.drive.mountedPath ,self.warning))
+            os.unlink(partLogFile.name)
         return text, logFile, stdoutFile, summaryFile
     
     def run(self):
