@@ -64,7 +64,7 @@ def checkPartitionUsage(partition, threshold=90):
     if not percentage:
         text = 'Partition {0} not found'.format(partition)
     elif percentage < threshold:
-        text = 'Partition {0} usage OK'.format(partition)
+        text = 'Partition {0} usage OK. Used {1}%'.format(partition, percentage)
     elif percentage >= threshold:
         text = 'Warning! Partition usage has exceeded {0}% and is {1}%'.format(threshold, percentage)
     return text 
