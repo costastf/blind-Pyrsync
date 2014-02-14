@@ -93,6 +93,8 @@ Please note that the source should be the absolute path of the rsynced directory
           "destination" : ""
 ```
 
+It would be good at this point to check the json files through a json validator. Just google for one on line and check the settings.
+
 The rsync options supported are :
 ```
      'humanReadable'     :'--human-readable',    # output numbers in a human-readable format
