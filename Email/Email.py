@@ -28,32 +28,66 @@ from email.MIMEText import MIMEText
 from email.Utils import COMMASPACE, formatdate
 from email import Encoders
 import smtplib, os
+import socket
+import traceback
+import logging
+
+
 
 class Email(object):
     def __init__(self, smtp):
+        self.logger = logging.getLogger(__name__)
+        self.logger.debug('Initializing Email object with smtp : {0}'.format(smtp))
         self.smtp = smtp
     def send(self, sender, recipients, subject, text, attachments=None):
         To =[]
         for recipient in recipients.split(','):
+            self.logger.debug('Appending to recipients list : {0}'.format(recipient))
             To.append(recipient)
         msg = MIMEMultipart()
         msg['From'] = sender
+        self.logger.debug('Set sender to : {0}'.format(sender))
         msg['To'] = COMMASPACE.join(To)
+        self.logger.debug('Set recipients to : {0}'.format(COMMASPACE.join(To)))
         msg['Date'] = formatdate(localtime=True)
+        self.logger.debug('Set date to : {0}'.format(formatdate(localtime=True)))
         msg['Subject'] = subject.decode('utf-8')
+        self.logger.debug('Set subject to : {0}'.format(subject.decode('utf-8')))
         msg.preamble = 'Multipart massage.\n'
         part = MIMEText(text, 'plain', 'UTF-8')
         msg.attach(part)
         # This is the binary part(The Attachment):
         if attachments:
             for attachment in attachments.split(','):            
+                self.logger.debug('Appending to attachment list : {0}'.format(attachment))
                 part = MIMEApplication(open(attachment,"rb").read())
                 part.add_header('Content-Disposition', 'attachment', filename=os.path.basename(attachment))
-                msg.attach(part)        
-        smtp = smtplib.SMTP(self.smtp)
-        smtp.sendmail(sender, To, msg.as_string() )
-        smtp.close()
-
+                msg.attach(part)    
+        # Could set tls for encryption
+        #smtp.starttls()
+        # Could use credentials for authentication
+        #smtp.login('user','pass')
+        try:
+            self.logger.debug('Opening smtp connection with argument : {0}'.format(self.smtp))    
+            smtp = smtplib.SMTP(self.smtp)
+            self.logger.debug('Sending email report with attachments.')      
+            smtp.sendmail(sender, To, msg.as_string() )
+            self.logger.debug('Done sending email report.')
+            result = True 
+        except Exception:
+            self.logger.warning('Sending of mail failed!')
+            self.logger.warning('Traceback :', exc_info=True)
+            result = False
+        self.logger.debug('Closing smtp connection.')  
+        try:  
+            smtp.close()
+            self.logger.debug('Done closing smtp connection.')
+            result = True            
+        except Exception:
+            self.logger.warning('Smtp connection not closed properly. Propably the email sending failed.')
+            result = False
+        return result
+        
 if __name__ == '__main__':
     message=Email(smtp='smtp.provider.com')
     message.send(   sender      = 'sender@server.com',\

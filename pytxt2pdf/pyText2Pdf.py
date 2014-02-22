@@ -340,14 +340,14 @@ class PyText2Pdf(object):
                 print 'Error: Could not open file to write --->', self._ofile
                 sys.exit(3)
 
-            print 'Input file=>',self._ifile
-            print 'Writing pdf file',self._ofile, '...'
+            #print 'Input file=>',self._ifile
+            #print 'Writing pdf file',self._ofile, '...'
         self.writeheader()
         self.writepages()
         self.writerest()
 
         if not self.buffers:
-            print 'Wrote file', self._ofile
+            #print 'Wrote file', self._ofile
             self._ifs.close()
             self._ofs.close()
         return 0

@@ -24,6 +24,8 @@ __date__      = '13/11/2013'
 import sys
 import os
 from subprocess import Popen,PIPE
+import logging
+
 
 if sys.platform == 'linux2':
     import pynotify
@@ -68,20 +70,28 @@ class WindowsBalloonTip(object):
 
 class Notify(object):
     def __init__(self):
+        self.logger = logging.getLogger(__name__)
+        self.logger.debug('Initializing notify object')
         if sys.platform == 'linux2':
-            pynotify.init('Summary')
-            self.__notifier = pynotify.Notification
-            self.message = self.__message
-            who = Popen(['who'], stdout=PIPE).stdout.read()
+            self.user = ''
+            who = Popen(['/usr/bin/who'], stdout=PIPE).stdout.read()
             for line in who.splitlines():
                 if 'tty7' in line:
                     self.user = line.split()[0]  
-                    try:          
-                        self.display = line.split()[4].replace('(','').replace(')','')
-                    except IndexError:
+                    if '(' in line.split()[-1]:
+                        self.display = line.split()[-1].replace('(','').replace(')','')
+                    else:
                         self.display = ':0'
-                    break            
+                    break
+            self.logger.debug('Set user : {0}'.format(self.user))
+            self.logger.debug('Set display : {0}'.format(self.display))
+            self.logger.debug('Initializing pynotify')
+            pynotify.init('Summary')
+            self.__notifier = pynotify.Notification
+            self.message = self.__message
+                       
         if sys.platform == 'win32':
+            self.logger.debug('Initializing WindowsBalloonTip')
             self.__notifier = WindowsBalloonTip()
             self.message = self.__message
             
@@ -89,7 +99,9 @@ class Notify(object):
         if sys.platform == 'linux2':
             os.putenv('XAUTHORITY', '/home/{0}/.Xauthority'.format(self.user))
             os.putenv('DISPLAY', self.display)
+            self.logger.debug('Showing message.')
             self.__notifier(header, message).show()
+            self.logger.debug('Done showing message.')
         if sys.platform == 'win32':
             tip = Thread(target=self.__notifier.message, args=(header, message))
             tip.start()                 

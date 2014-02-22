@@ -23,6 +23,8 @@ __date__ = '21/03/2012'
 
 from subprocess import Popen, PIPE
 import sys, os
+import logging
+
 
 
 class Sync(object):
@@ -42,6 +44,8 @@ class Sync(object):
             
  
     def __init__(self):
+        self.logger = logging.getLogger(__name__)
+        self.logger.debug('Initializing sync object')
         self.output = ''
         self.error = ''
         self.__options = { 'humanReadable'     :'--human-readable',    # output numbers in a human-readable format
@@ -102,6 +106,7 @@ class Sync(object):
         self.source = None
         self.destination = None
         self.binary = self.__getBinaryPath()
+        self.logger.debug('Done initializing sync object')
         
     def __getBinaryPath(self):
         """Gets the software name and returns the path of the binary."""
@@ -119,18 +124,21 @@ class Sync(object):
                         binary = os.path.join(path, executable)
                         break
         if binary:
+            self.logger.debug('Found rsync binary under : {0}'.format(binary))
             return binary
         else:
-            print "Could not find rsync binary. Probably software not installed."
+            self.logger.error('Could not find rsync binary. Probably software not installed.')
             raise SystemExit        
 
     def __normalizePath(self, path):
         if sys.platform == 'win32':
+            self.logger.debug('Normalizing path for windows.')
             rsyncPath = path.replace(':', '').split(os.sep)
             rsyncPath.reverse()
             rsyncPath.append('/cygdrive')
             rsyncPath.reverse()
             path = '/'.join(rsyncPath)
+            self.logger.debug('Normalized path as : {0}.'.format(path))
         return path
         
     def __appendOptions(self, command):
@@ -139,39 +147,45 @@ class Sync(object):
                 try:
                     if key == 'exclude':
                         for exclude in value.split():
+                            self.logger.debug('Appending exclude option with argument : {0}'.format(exclude))
                             command.append(self.__options[key] + exclude)
                     elif key == 'include':
                         for include in value.split():
+                            self.logger.debug('Appending include option with argument : {0}'.format(include))                        
                             command.append(self.__options[key] + include)
                     elif key == 'logFile':
                         command.append(self.__options[key] + value)
                     else:
+                        self.logger.debug('Appending option {0} with argument : {0}'.format(key, self.__options[key]))
                         command.append(self.__options[key])
                 except KeyError:
-                    print('Unknown or not supported option "{0}". Supported options : {1}'.format(key, ' '.join(self.__options.keys())))
+                    self.logger.warning('Unknown or not supported option "{0}". Supported options : {1}'.format(key, ' '.join(self.__options.keys())))
                     pass
+        self.logger.debug('Appending source option with argument : {0}'.format(self.source))            
         command.append(self.__normalizePath(self.source))
+        self.logger.debug('Appending destination option with argument : {0}'.format(self.destination))        
         command.append(self.__normalizePath(self.destination))
+        self.logger.debug('Final rsync options are : {0}'.format(command))        
         return command
                     
     def run(self):
         if self.source and self.destination:
             command = [self.binary]
             command = self.__appendOptions(command)
-            print command
-            process = Popen(command, stdout=PIPE)
+            self.logger.debug('Final rsync command is : {0}'.format(command))   
+            process = Popen(command, stdout=PIPE, stderr=PIPE)
             self.output, self.error = process.communicate()
             returnCode = process.returncode
-            if not self.error:
-                self.error = ''
             if str(returnCode) != '0':
                 try:
                     returnCode = self.errorCodes[str(returnCode)]
+                    self.logger.warning('Got error code : {0}'.format(returnCode))
                 except IndexError:
-                    returnCode = 'Error not in error code list'
+                    self.logger.warning('Error not in error code list.')                
             return returnCode             
         else:
-            print "Please set source and destination."
+            self.logger.error('Please set source and destination.')     
+            raise Exception('Source and destination are not set.')           
 
 if __name__ == '__main__':
     backup = Sync()

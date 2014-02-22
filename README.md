@@ -176,3 +176,5 @@ after you have pluged the drive there should be a file under /tmp named udevChec
 If the rule is working as expected one could call the script manually to check that everything is working before settings it up to work blindly. Plug the drive in and check the device name that it is given under /dev (ie: /dev/sdb1)
   
 Call the backup script as root /path/to/scipt/backup.py DRIVESERIAL DEVICENAMEUNDERDEV PARTITIONNAMEUNDERDEV and everything should run OK. If not, troubleshoot according to the error messages given. If everything works out as expected you are good to go.
+
+Added heavy logging for debugging purposes. Under conf directory there is logging.json file with options for logging. I have enabled debug level as default. One should only change to the desired logging level in the json file. The logging in done on stdout and on a file in the root of the blind-Pyrsync directory called backup.log. With a simple tail -f on that file one could figure out any trouble with the back up. Have fun!

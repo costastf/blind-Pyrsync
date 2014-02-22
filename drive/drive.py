@@ -27,81 +27,112 @@ import os
 import time
 import sys
 from subprocess import Popen, PIPE
+import logging
+
 
 class Drive(object):
     def __init__(self, device, partition):
+        self.logger = logging.getLogger(__name__)
+        self.logger.debug('Initializing drive object')
         if sys.platform == 'linux2':
+            self.logger.debug('Drive is in linux platform')
             if os.path.exists(device):
                 self.device = device
+                self.logger.debug('Device is {0}'.format(device))
                 self.mountedPath = False    
-                self.partition = partition        
+                self.partition = partition  
+                self.logger.debug('Partition is {0}'.format(partition))      
                 self.mount = self.__mountL
                 self.umount = self.__umountL
                 self.detach = self.__detachL
-                self.attach = self.__attachL                                                
+                self.attach = self.__attachL        
+                self.logger.debug('Done initializing drive object')                                        
             else:
-                print('Device not found. Exiting')
+                self.logger.error('Device {0} not found. Exiting...'.format(device))
                 raise SystemExit
         elif sys.platform == 'win32':
+            self.logger.debug('Drive is in windows platform')
             if os.path.exists(partition):
                 self.device = device
+                self.logger.debug('Device is {0}'.format(device))
                 self.partition = partition        
+                self.logger.debug('Partition is {0}'.format(partition))                      
                 self.mountedPath = partition                
                 self.mount = self.__mountW
                 self.umount = self.__umountW
                 self.detach = self.__detachW
-                self.attach = self.__attachW                                                
+                self.attach = self.__attachW                     
+                self.logger.debug('Done initializing drive object')                                              
             else:
-                print('Device not found. Exiting')
+                self.logger.error('Device {0} not found. Exiting...'.format(device))
                 raise SystemExit
 
     def __mountL(self):
         self.mountedPath = tempfile.mkdtemp()
+        self.logger.debug('Temporary mounted path {0}'.format(self.mountedPath)) 
         process = Popen(['/bin/mount', self.partition, self.mountedPath], \
                         stdout=PIPE, stderr=PIPE)
         out, error = process.communicate()
         if error:
-            print('Error in mounting, removing temp path {0}'.format(self.mountedPath))
-            print('Error : {0}'.format(error))
+            self.logger.warning('Error in mounting, removing temp path {0}'.format(self.mountedPath))
+            self.logger.warning('Error was : {0}'.format(error.strip()))
             shutil.rmtree(self.mountedPath)
+            self.logger.warning('Done removing temporary path') 
         return out, error
-
-    def __mountW(self):
-        return True, False
 
     def __umountL(self):
         report = ''
         if self.mountedPath:
+            self.logger.debug('Unmounting temporary mount : {0}'.format(self.mountedPath)) 
             process = Popen(['/bin/umount', self.mountedPath], \
                             stdout=PIPE, stderr=PIPE)
             report = process.communicate()
             try:
+                self.logger.debug('Removing temporary directory : {0}'.format(self.mountedPath)) 
                 shutil.rmtree(self.mountedPath)
+                self.logger.debug('Done removing temporary directory : {0}'.format(self.mountedPath)) 
             except OSError:
-                print('Temp mounted directory not found')
+                self.logger.warning('Temporary directory {0} not found for removal'.format(self.mountedPath)) 
+        else:
+            self.logger.warning('There doesn\'t appear to be a temporary mounted path.') 
         return report
-
-    def __umountW(self):    
-        return True, False
-    
+        
     def __detachL(self):
+        self.logger.debug('Detaching device : {0}'.format(self.device)) 
         process = Popen(['/usr/bin/udisks', '--detach', self.device], \
                         stdout=PIPE, stderr=PIPE)
         out, error = process.communicate()
-        return out, error    
+        if error:
+            self.logger.warning('Error detaching device : {0}'.format(self.device))
+            self.logger.warning('Error was : {0}'.format(error.strip()))
+        else:
+            self.logger.debug('Successfully detached device : {0}'.format(self.device))          
+        return out, error      
 
-    def __detachW(self):    
-        pass
-    
     def __attachL(self):
         sysname = self.partition.split('/')[-1]
+        self.logger.debug('Attaching device with sysname: {0}'.format(sysname)) 
         process = Popen(['/sbin/udevadm', \
                          'trigger', \
                          '--action=change', \
                          '--sysname-match={0}'.format(sysname)], \
                          stdout=PIPE, stderr=PIPE)
         out, error = process.communicate()
+        if error:
+            self.logger.warning('Error attaching device : {0}'.format(self.device))
+            self.logger.warning('Error was : {0}'.format(error.strip()))
+        else:
+            self.logger.debug('Successfully attached device : {0}'.format(self.device))     
         return out, error    
+        
+    def __mountW(self):
+        return True, False
+
+    def __umountW(self):    
+        return True, False
+
+    def __detachW(self):    
+        pass
 
     def __attachW(self):
         return True, False
