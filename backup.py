@@ -34,7 +34,8 @@ import traceback
 import logging.config
 
 logger = logging.getLogger(__name__)
-logConfig = os.path.join('conf','logging.json')
+currentPath, _, scriptName = sys.argv[0].rpartition('/')
+logConfig = os.path.join(currentPath,'conf','logging.json')
 config = json.loads(open(logConfig).read())
 logging.config.dictConfig(config)
 
