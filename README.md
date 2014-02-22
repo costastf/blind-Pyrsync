@@ -6,29 +6,44 @@ Tested with Ubuntu 10.4, Ubuntu 12.4 Desktop, Ubuntu 13.10 Desktop and Debian 6 
 
 The idea behind this srcipt is that one creates one or more recipes for a backup in plain json under the conf directory
 and the script calls and executes the job depending on the drive inserted. Under ubuntu / debian one would create a udev rule under /etc/udev/rules.d/99-usb-drive.rules or any other name that suits. The rule should consist of one of the following : 
-
+```
 ##### UBUNTU 12.4 Desktop And later Rule
 ACTION=="add", KERNEL=="sd?1", ATTRS{idVendor}=="", ATTRS{idProduct}=="", ATTRS{serial}=="", ENV{UDISKS_IGNORE}="1", RUN+="/path/to/blind-Pyrsync/backup.py $attr{serial} %r/%P %r/%k"
-
+```
+```
 ##### UBUNTU 10.4 Desktop Rule
 ACTION=="add", KERNEL=="sd?1", ATTRS{idVendor}=="", ATTRS{idProduct}=="", ATTRS{serial}=="", ENV{UDISKS_PRESENTATION_HIDE}="1", RUN+="/path/to/blind-Pyrsync/backup.py $attr{serial} %r/%P %r/%k" 
-
+```
+```
 ##### Debian Server Rule
 ACTION=="add", KERNEL=="sd?1", ATTRS{idVendor}=="", ATTRS{idProduct}=="", ATTRS{serial}=="", RUN+="/path/to/blind-Pyrsync/backup.py $attr{serial} %r/%P %r/%k"
-
+```
 One should fill out ATTRS{idVendor}=="", ATTRS{idProduct}=="", ATTRS{serial}=="" variables with their own details. The details can be attained with :
-udevadm info -a -p $(udevadm info -q path -n /dev/!!DEVICE!!) | egrep -i "ATTRS{serial}|ATTRS{idVendor}|ATTRS{idProduct}" -m 3
+```udevadm info -a -p $(udevadm info -q path -n /dev/!!DEVICE!!) | egrep -i "ATTRS{serial}|ATTRS{idVendor}|ATTRS{idProduct}" -m 3```
 
 Also under the "add" rule one should place a "change" rule for that device like :
 
+```
 ####### Change rule
 ACTION=="change", SUBSYSTEM=="usb",  ATTRS{serial}==""
-
+```
 This rule takes care the showing of the device to the user in case of desktop systems where after the sync one would want the drive to appear as if inserted to check the backup or use the drive for other stuff. 
 
 The ATTRS{idVendor}=="" and ATTRS{idProduct}=="" can of course be ommited. They are used just for the highly unlikely case were there are two drives with the same serial. 
 
 There can be as many rule couples as drives one would want to use for backup.
+
+There is a known bug with some udev versions that doesn't let udev traverse the device tree for $attr although in the documentation it says it does. A handy work around for that is to create an ENV with the value that we want to pass and use that instead of the $attr. In the case of the serial for example the rule could be changed from 
+
+```
+##### Debian Server Rule
+ACTION=="add", KERNEL=="sd?1", ATTRS{idVendor}=="", ATTRS{idProduct}=="", ATTRS{serial}=="", RUN+="/path/to/blind-Pyrsync/backup.py $attr{serial} %r/%P %r/%k"
+```
+to 
+```
+##### Debian Server Rule
+ACTION=="add", KERNEL=="sd?1", ATTRS{idVendor}=="", ATTRS{idProduct}=="", ATTRS{serial}=="", ENV{serial}="SERIAL_NUMBER_HERE" RUN+="/path/to/blind-Pyrsync/backup.py $env{serial} %r/%P %r/%k"
+```
 
 After the udev rule is set a file named email.json should be created under conf directory with the following structure
 
@@ -177,4 +192,4 @@ If the rule is working as expected one could call the script manually to check t
   
 Call the backup script as root /path/to/scipt/backup.py DRIVESERIAL DEVICENAMEUNDERDEV PARTITIONNAMEUNDERDEV and everything should run OK. If not, troubleshoot according to the error messages given. If everything works out as expected you are good to go.
 
-Added heavy logging for debugging purposes. Under conf directory there is logging.json file with options for logging. I have enabled debug level as default. One should only change to the desired logging level in the json file. The logging in done on stdout and on a file in the root of the blind-Pyrsync directory called backup.log. With a simple tail -f on that file one could figure out any trouble with the back up. Have fun!
+Added heavy logging for debugging purposes. Under conf directory there is logging.json file with options for logging. I have enabled debug level as default. One should only change to the desired logging level in the json file. The logging is done on stdout and on a file called backup.log. If one would want that back up file to be in a specific directory one should change the path in the logging.json file. If the backup script is run by udev as it is intended the default location of the backup.log is the root of the filesystem.  With a simple tail -f on that file one could figure out any trouble with the back up. Have fun!
