@@ -83,6 +83,9 @@ class Notify(object):
                     else:
                         self.display = ':0'
                     break
+            if not self.user:
+                self.logger.error('User not found in tty7. Probably no one logged in or in other terminal') 
+                raise Exception('No user found.')              
             self.logger.debug('Set user : {0}'.format(self.user))
             self.logger.debug('Set display : {0}'.format(self.display))
             self.logger.debug('Initializing pynotify')

@@ -52,9 +52,10 @@ class BackUp(object):
             self.__notify = Notify()
             self.guiAble = True
             logger.debug('Gui enabled')            
-        except ImportError:
+        except Exception:
             self.guiAble = False
-            logger.debug('Error in enabling gui')            
+            logger.warning('Error in enabling gui')   
+            logger.warning('Traceback : ', exc_info=True)         
     
     def setDrive(self, drive, partition):
         logger.debug('Initializing drive object')
