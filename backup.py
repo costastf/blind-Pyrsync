@@ -77,7 +77,7 @@ class BackUp(object):
             logger.debug('Email configured successfully')
         except:
             logger.error('Email configuration file not found, or something wrong with the settings.')
-            logger.error('Traceback :{0}'.format(sys.exc_info()[1]))
+            logger.error('Traceback :{0}', exc_info=True)
             raise SystemExit    
             
     def setJobDetails(self, serial):
@@ -329,6 +329,36 @@ if __name__=='__main__':
     except IndexError:
         logger.error('Not enough arguments. Exiting...')
         raise SystemExit
+    # do the UNIX double-fork magic, see Stevens' "Advanced 
+    # Programming in the UNIX Environment" for details (ISBN 0201563177)        
+    try: 
+        logger.debug('Forking once')
+        pid = os.fork() 
+        if pid > 0:
+            # exit first parent
+            logger.debug('Exiting first parent')
+            raise SystemExit(0)
+    except OSError, e: 
+        logger.error('Fork #1 failed')
+        logger.error('Traceback :', exc_info=True)
+        raise SystemExit(1)
+    # decouple from parent environment
+    os.chdir("/") 
+    os.setsid() 
+    os.umask(0) 
+    # do second fork
+    try: 
+        logger.debug('Forking twice')    
+        pid = os.fork() 
+        if pid > 0:
+            # exit from second parent, print eventual PID before
+            logger.debug('Exiting second parent')            
+            logger.error('Daemon PID : {0}'.format(pid))
+            raise SystemExit(0)
+    except OSError, e: 
+        logger.error('Fork #2 failed')
+        logger.error('Traceback :', exc_info=True)
+        raise SystemExit(1)
     
     backUp = BackUp()
     backUp.setDrive(device, partition)

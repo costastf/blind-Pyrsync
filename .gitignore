@@ -3,3 +3,4 @@
 backup.log
 *.dll
 *.exe
+.gitignore
