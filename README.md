@@ -42,7 +42,7 @@ ACTION=="add", KERNEL=="sd?1", ATTRS{idVendor}=="", ATTRS{idProduct}=="", ATTRS{
 to 
 ```
 ##### Debian Server Rule
-ACTION=="add", KERNEL=="sd?1", ATTRS{idVendor}=="", ATTRS{idProduct}=="", ATTRS{serial}=="", ENV{serial}="SERIAL_NUMBER_HERE" RUN+="/path/to/blind-Pyrsync/backup.py $env{serial} %r/%P %r/%k"
+ACTION=="add", KERNEL=="sd?1", ATTRS{idVendor}=="", ATTRS{idProduct}=="", ATTRS{serial}=="", ENV{serial}="SERIAL_NUMBER_HERE", RUN+="/path/to/blind-Pyrsync/backup.py $env{serial} %r/%P %r/%k"
 ```
 
 After the udev rule is set a file named email.json should be created under conf directory with the following structure
