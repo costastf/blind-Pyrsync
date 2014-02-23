@@ -353,7 +353,7 @@ if __name__=='__main__':
         if pid > 0:
             # exit from second parent, print eventual PID before
             logger.debug('Exiting second parent')            
-            logger.error('Daemon PID : {0}'.format(pid))
+            logger.debug('Daemon PID : {0}'.format(pid))
             raise SystemExit(0)
     except OSError, e: 
         logger.error('Fork #2 failed')
