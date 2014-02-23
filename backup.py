@@ -30,7 +30,6 @@ from pytxt2pdf.pyText2Pdf import PyText2Pdf
 from utils.utils import tail
 from utils.utils import checkPartitionUsage
 import socket
-import traceback
 import logging.config
 
 logger = logging.getLogger(__name__)
@@ -78,7 +77,7 @@ class BackUp(object):
             logger.debug('Email configured successfully')
         except:
             logger.error('Email configuration file not found, or something wrong with the settings.')
-            logger.error('Traceback :{0}', exc_info=True)
+            logger.error('Traceback : ', exc_info=True)
             raise SystemExit    
             
     def setJobDetails(self, serial):
@@ -130,7 +129,7 @@ class BackUp(object):
             self.summary = self.__configuration['report']['summary']            
         except:
             logger.error('Backup configuration file not found or something wrong with the syntax. Quiting...')
-            logger.error('Traceback :{0}'.format(traceback.format_exc()))
+            logger.error('Traceback : ', exc_info=True)
             raise SystemExit            
     
     def __emailReport(self, text, logFile, stdoutFile, summaryFile):
@@ -173,7 +172,7 @@ class BackUp(object):
             logger.debug('Done sending email report.')
         except socket.error:
             logger.warning('Sending of mail failed!')
-            logger.warning('Traceback :{0}'.format(traceback.format_exc()))
+            logger.warning('Traceback : ', exc_info=True)
             pass
         if self.log:    
             logger.debug('Removing log : {0}'.format(log))                          
@@ -341,7 +340,7 @@ if __name__=='__main__':
             raise SystemExit(0)
     except OSError, e: 
         logger.error('Fork #1 failed')
-        logger.error('Traceback :', exc_info=True)
+        logger.error('Traceback : ', exc_info=True)
         raise SystemExit(1)
     # decouple from parent environment
     os.chdir("/") 
@@ -358,7 +357,7 @@ if __name__=='__main__':
             raise SystemExit(0)
     except OSError, e: 
         logger.error('Fork #2 failed')
-        logger.error('Traceback :', exc_info=True)
+        logger.error('Traceback : ', exc_info=True)
         raise SystemExit(1)
     
     backUp = BackUp()
