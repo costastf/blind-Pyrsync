@@ -1,6 +1,16 @@
 blind-Pyrsync
 =============
 
+#####################################################################     
+TODO : Recent versions of udev with systemd don't accept long running processes from RUN+ as the manual states. Moving the backup to a systemd service is appropriate for long jobs. 
+
+```
+This can only be used for very short-running foreground tasks. Running an event process for a long period of time may block all further events for this or a dependent device.
+
+Starting daemons or other long running processes is not appropriate for udev; the forked processes, detached or not, will be unconditionally killed after the event handling has finished.
+udev manual
+```
+
 Blind backup solution (setup, plug drive, get notice, unplug drive) based on an rsync python wrapper. 
 Tested with Ubuntu 10.4, Ubuntu 12.4 Desktop, Ubuntu 13.10 Desktop and Debian 6 Server.
 
