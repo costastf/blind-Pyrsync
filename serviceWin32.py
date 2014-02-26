@@ -1,25 +1,13 @@
 #!/usr/bin/env python
 #-*- coding: UTF-8 -*-
-# File: windowsService.py
-# Copyright (c) 2013 by None
-#
-# GNU General Public Licence (GPL)
-# 
-# This program is free software; you can redistribute it and/or modify it under
-# the terms of the GNU General Public License as published by the Free Software
-# Foundation; either version 2 of the License, or (at your option) any later
-# version.
-# This program is distributed in the hope that it will be useful, but WITHOUT
-# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
-# details.
-# You should have received a copy of the GNU General Public License along with
-# this program; if not, write to the Free Software Foundation, Inc., 59 Temple
-# Place, Suite 330, Boston, MA  02111-1307  USA
-#
-__author__    = 'Costas Tyfoxylos <costas.tyf@gmail.com>'
+# File: serviceWin32.py
+
 __docformat__ = 'plaintext'
 __date__      = '15/11/2013'
+
+## This is Tim Goldens' device detection service taken from
+## http://timgolden.me.uk/python/win32_how_do_i/detect-device-insertion.html
+## I just added the detaching subprocess call
 
 import win32serviceutil
 import win32service
@@ -37,10 +25,12 @@ DBT_DEVICEREMOVECOMPLETE = 0x8004
 from subprocess import Popen, PIPE
 import ctypes
 import os
+DETACHED_PROCESS = 0x00000008
 
+CWD = r'C:\blind-Pyrsync\'
+PYTHONPATH = r'C:\Python27\python.exe'
+STAGINGPROG = r'C:\blind-Pyrsync\backupWin32.py'
 
-PYTHONPATH = r'C:\Program Files\Python\python.exe'
-STAGINGPROG = r'P:\backupWin32.py'
 
 # Cut-down clone of UnpackDEV_BROADCAST from win32gui_struct, to be
 # used for monkey-patching said module with correct handling
@@ -118,7 +108,7 @@ class DeviceEventService (win32serviceutil.ServiceFramework):
                 0xF000,
                 ("Device %s arrived" % serial, '')
             )
-            Popen([PYTHONPATH, STAGINGPROG, serial],close_fds=True)
+            Popen([PYTHONPATH, STAGINGPROG, serial], creationflags=DETACHED_PROCESS, cwd=CWD )
         elif event_type == DBT_DEVICEREMOVECOMPLETE:
             servicemanager.LogMsg (
                 servicemanager.EVENTLOG_INFORMATION_TYPE,
@@ -143,3 +133,4 @@ class DeviceEventService (win32serviceutil.ServiceFramework):
 
 if __name__=='__main__':
     win32serviceutil.HandleCommandLine (DeviceEventService)
+
