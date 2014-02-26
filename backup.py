@@ -136,7 +136,7 @@ class BackUp(object):
         attach = []
         hostname = socket.gethostname()
         logger.debug('Hostname set to : {0}'.format(hostname))
-        now = time.asctime( time.localtime(time.time()))
+        now = time.asctime( time.localtime(time.time())).replace(':','-')
         logger.debug('Now time set to : {0}'.format(now))
         if self.log:
             log = os.path.join(self.__cwd, hostname + ' ' + now + ' full report.pdf')
