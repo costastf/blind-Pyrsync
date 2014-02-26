@@ -25,6 +25,8 @@ import sys
 import time
 import wmi
 from backup import BackUp
+import logging
+logger = logging.getLogger(__name__)
 
 def getDriveLetterFromSerial(serial):
     try:
@@ -46,12 +48,17 @@ def getDriveLetterFromSerial(serial):
 if __name__=='__main__':
     try:
         serial = sys.argv[1]
+        logger.debug('Got device serial : {0}'.format(serial))
     except IndexError:
-        print('Not enough arguments. Exiting')
+        logger.error('Not enough arguments. Exiting')
         raise SystemExit
+    time.sleep(5)
     device, partition = getDriveLetterFromSerial(serial)    
+    logger.debug('Got device : {0}'.format(device))
+    logger.debug('Got partition : {0}'.format(partition))
     backUp = BackUp()
     backUp.setDrive(device, partition)
     backUp.enableEmail()
     backUp.setJobDetails(serial)    
     backUp.run()
+
