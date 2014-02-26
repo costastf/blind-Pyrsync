@@ -56,7 +56,6 @@ if __name__=='__main__':
     except IndexError:
         logger.error('Not enough arguments. Exiting')
         raise SystemExit
-    time.sleep(5)
     try:
         device, partition = getDriveLetterFromSerial(serial)    
     except TypeError:

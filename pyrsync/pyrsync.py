@@ -22,6 +22,7 @@ __docformat__ = 'plaintext'
 __date__ = '21/03/2012'
 
 from subprocess import Popen, PIPE
+import subprocess
 import sys, os
 import logging
 
@@ -173,7 +174,12 @@ class Sync(object):
             command = [self.binary]
             command = self.__appendOptions(command)
             self.logger.debug('Final rsync command is : {0}'.format(command))   
-            process = Popen(command, stdout=PIPE, stderr=PIPE)
+            if sys.platform == 'win32':
+                startupinfo = subprocess.STARTUPINFO()
+                startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                process = Popen(command, startupinfo=startupinfo, stdout=PIPE, stderr=PIPE)
+            else:
+                process = Popen(command, stdout=PIPE, stderr=PIPE)            
             self.output, self.error = process.communicate()
             returnCode = process.returncode
             if str(returnCode) != '0':

@@ -2,24 +2,29 @@ blind-Pyrsync
 =============
 
 Blind backup solution (setup, plug drive, get notice, unplug drive) based on an rsync python wrapper. 
-Tested with Ubuntu 10.4, Ubuntu 12.4 Desktop, Ubuntu 13.10 Desktop and Debian 6 Server.
+Tested with Ubuntu 10.4, Ubuntu 12.4 Desktop, Ubuntu 13.10 Desktop, Debian 6 Server, Debian 7 Server, windows XP and needs Python 2.7. (If one would like to use it with python 2.6 some changes are needed in the logging setup because 2.6 doesn't support dictionaries for setup. I think that its cleaner this way but it would be trivial to change the code to support 2.6.)
 
-The idea behind this srcipt is that one creates one or more recipes for a backup in plain json under the conf directory
-and the script calls and executes the job depending on the drive inserted. Under ubuntu / debian one would create a udev rule under /etc/udev/rules.d/99-usb-drive.rules or any other name that suits. The rule should consist of one of the following : 
+The idea behind this srcipt is that one creates one or more recipes for a backup in plain json under the conf directory and the script calls and executes the job depending on the drive inserted.
+
+For some basic instruction for windows XP, (i don't use windows and don't think that will try to make it work for any further versions... Maybe just check if it works out of the box) read the READ.xp help file.
+
+ Under ubuntu / debian one would create a udev rule under /etc/udev/rules.d/99-usb-drive.rules or any other name that suits. The rule should consist of one of the following : 
 ```
 ##### UBUNTU 12.4 Desktop And later Rule
-ACTION=="add", KERNEL=="sd?1", ATTRS{idVendor}=="", ATTRS{idProduct}=="", ATTRS{serial}=="", ENV{UDISKS_IGNORE}="1", RUN+="/path/to/blind-Pyrsync/backup.py $attr{serial} %r/%P %r/%k"
+ACTION=="add", KERNEL=="sd?1", ATTRS{idVendor}=="", ATTRS{idProduct}=="", ATTRS{serial}=="", ENV{serial}="SERIAL_NUMBER_HERE", ENV{UDISKS_IGNORE}="1", RUN+="/path/to/blind-Pyrsync/backup.py $env{serial} %r/%P %r/%k"
 ```
 ```
 ##### UBUNTU 10.4 Desktop Rule
-ACTION=="add", KERNEL=="sd?1", ATTRS{idVendor}=="", ATTRS{idProduct}=="", ATTRS{serial}=="", ENV{UDISKS_PRESENTATION_HIDE}="1", RUN+="/path/to/blind-Pyrsync/backup.py $attr{serial} %r/%P %r/%k" 
+ACTION=="add", KERNEL=="sd?1", ATTRS{idVendor}=="", ATTRS{idProduct}=="", ATTRS{serial}=="", ENV{serial}="SERIAL_NUMBER_HERE", ENV{UDISKS_PRESENTATION_HIDE}="1", RUN+="/path/to/blind-Pyrsync/backup.py $env{serial} %r/%P %r/%k" 
 ```
 ```
 ##### Debian Server Rule
-ACTION=="add", KERNEL=="sd?1", ATTRS{idVendor}=="", ATTRS{idProduct}=="", ATTRS{serial}=="", RUN+="/path/to/blind-Pyrsync/backup.py $attr{serial} %r/%P %r/%k"
+ACTION=="add", KERNEL=="sd?1", ATTRS{idVendor}=="", ATTRS{idProduct}=="", ATTRS{serial}=="", ENV{serial}="SERIAL_NUMBER_HERE", RUN+="/path/to/blind-Pyrsync/backup.py $env{serial} %r/%P %r/%k"
 ```
 One should fill out ATTRS{idVendor}=="", ATTRS{idProduct}=="", ATTRS{serial}=="" variables with their own details. The details can be attained with :
 ```udevadm info -a -p $(udevadm info -q path -n /dev/!!DEVICE!!) | egrep -i "ATTRS{serial}|ATTRS{idVendor}|ATTRS{idProduct}" -m 3```
+
+There is a known bug with some udev versions that doesn't let udev traverse the device tree for $attr although in the documentation it says it does. A handy work around for that is to create an ENV variable with the value that we want to pass and use that instead of the $attr. That is why we are setting ENV{serial}="SERIAL_NUMBER_HERE" and passing that as argument to our script with $env{serial}.
 
 Also under the "add" rule one should place a "change" rule for that device like :
 
@@ -32,18 +37,6 @@ This rule takes care the showing of the device to the user in case of desktop sy
 The ATTRS{idVendor}=="" and ATTRS{idProduct}=="" can of course be ommited. They are used just for the highly unlikely case were there are two drives with the same serial. 
 
 There can be as many rule couples as drives one would want to use for backup.
-
-There is a known bug with some udev versions that doesn't let udev traverse the device tree for $attr although in the documentation it says it does. A handy work around for that is to create an ENV with the value that we want to pass and use that instead of the $attr. In the case of the serial for example the rule could be changed from 
-
-```
-##### Debian Server Rule
-ACTION=="add", KERNEL=="sd?1", ATTRS{idVendor}=="", ATTRS{idProduct}=="", ATTRS{serial}=="", RUN+="/path/to/blind-Pyrsync/backup.py $attr{serial} %r/%P %r/%k"
-```
-to 
-```
-##### Debian Server Rule
-ACTION=="add", KERNEL=="sd?1", ATTRS{idVendor}=="", ATTRS{idProduct}=="", ATTRS{serial}=="", ENV{serial}="SERIAL_NUMBER_HERE", RUN+="/path/to/blind-Pyrsync/backup.py $env{serial} %r/%P %r/%k"
-```
 
 After the udev rule is set a file named email.json should be created under conf directory with the following structure
 
@@ -59,7 +52,7 @@ After the udev rule is set a file named email.json should be created under conf 
 
 The script doesn't support smtp authentication yet.(It will propably do sometime.) It is assumed that one can send email through the provider's smtp service. The recipient or recipients(comma delimited multiple mails: "test@gmail.com,test2@gmail.com") will receive an email with the report of the finished jobs.
 
-Finally under conf directory we create the backup jobs as json files. The name should be the drive's serial number with the json extension. Example : 116AC2101219.json
+Finally under conf directory we create the backup jobs as json files. The name should be the drive's serial number with json as filetype extension. Example : 116AC2101219.json
 
 It's contents should be in the form of :
 ```
@@ -153,7 +146,7 @@ Of course all options can be overriden. So one could set "defaults" : true which
 One can remove any of the supported settings by setting the variable to False ("delete": false) in the recipe, or set new ones. The logFile is set automatically by the main script when it is run, so even if it is set in the json configuration file the variable will be overriden.
 
 The options are "enabled" for the rsync to run, one could set it to false so the backup would not run and he/she could have access to the drive normaly.
-"eject" is for automatic detachment of the drive after the rsync. Of course if the "enabled" is set to false the "eject" is ignored. If eject is not set then the drive gets automounted just like it would without the backup job. This is useful for desktop machines with gui where the user would probably want to use or verify the backup in the drive. The "percentageWarning" is the drive's percentage usage above which one would get a warning in the end of the summary file. Something like 90 is a reasonable value. But then again, that is all relevant.. The last option, "gui" if set sends two notifications to the GUI, one for the start of the backup and one for the end of the back and the status of the device after that. (Attached or ejected, according to the setting of "eject") The "gui" in linux depends on the pynotify library. So that has to be installed or the notifications will not work, sillently of course.
+"eject" is for automatic detachment of the drive after the rsync. Of course if the "enabled" is set to false the "eject" is ignored. If eject is not set then the drive gets automounted just like it would without the backup job. This is useful for desktop machines with gui where the user would probably want to use or verify the backup in the drive. The "percentageWarning" is the drive's percentage usage above which one would get a warning in the end of the summary file. Something like 90 is a reasonable value. But then again, that is all relevant.. The above settings don't have much meaning for windows pcs. The last option, "gui" if set sends two notifications to the GUI, one for the start of the backup and one for the end of the back and the status of the device after that. (Attached or ejected, according to the setting of "eject") The "gui" in linux depends on the pynotify library. So that has to be installed or the notifications will not work, sillently of course.
 
 The reporting has three possible outputs. "stdout" will send the output of the rsync command, "log" will send the rsync logfile and "summary" will send a summary of all the jobs. They can be set in any combination. WARNING! The stdout and log can be quite large in a big job. Please make sure that the files can fit through your smtp.
 
@@ -197,12 +190,11 @@ echo $2 >> /tmp/udevCheck
 echo $3 >> /tmp/udevCheck
 ```
 
-name the file test.sh make it executable and put it in your udev rule in RUN command : 
-    RUN+="/path/to/test.sh $attr{serial} %r/%P %r/%k"
+name the file test.sh make it executable and put it in your udev rule in RUN command : RUN+="/path/to/test.sh $env{serial} %r/%P %r/%k"
 after you have pluged the drive there should be a file under /tmp named udevCheck with contents the drive's serial number and it's device name under /dev. If that doesn't happen then there is a problem with the rule and should be troubleshooted as a udev problem. Google it...
 
-If the rule is working as expected one could call the script manually to check that everything is working before settings it up to work blindly. Plug the drive in and check the device name that it is given under /dev (ie: /dev/sdb1)
+If the rule is working as expected one could call the script manually to check that everything is working before setting it up to work blindly. Plug the drive in and check the device name that it is given under /dev (ie: /dev/sdb1)
   
 Call the backup script as root /path/to/scipt/backup.py DRIVESERIAL DEVICENAMEUNDERDEV PARTITIONNAMEUNDERDEV and everything should run OK. If not, troubleshoot according to the error messages given. If everything works out as expected you are good to go.
 
-Added heavy logging for debugging purposes. Under conf directory there is logging.json file with options for logging. I have enabled debug level as default. One should only change to the desired logging level in the json file. The logging is done on stdout and on a file called backup.log. If one would want that back up file to be in a specific directory one should change the path in the logging.json file. If the backup script is run by udev as it is intended the default location of the backup.log is the root of the filesystem.  With a simple tail -f on that file one could figure out any trouble with the back up. Have fun!
+Added heavy logging for debugging purposes. Under conf directory there is logging.json file with options for logging. I have enabled debug level as default. One should just change to the desired logging level in the json file. The logging is done on stdout and on a file called backup.log. If one would want that back up file to be in a specific directory one should change the path in the logging.json file. If the backup script is run by udev as it is intended the default location of the backup.log is the root of the filesystem.  With a simple tail -f on that file one could figure out any trouble with the back up. Have fun!
