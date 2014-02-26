@@ -29,7 +29,8 @@ DETACHED_PROCESS = 0x00000008
 
 CWD = r'C:\blind-Pyrsync\'
 PYTHONPATH = r'C:\Python27\python.exe'
-STAGINGPROG = r'C:\blind-Pyrsync\backupWin32.py'
+
+STAGINGPROG = os.path.join (CWD, 'backupWin32.py')
 
 
 # Cut-down clone of UnpackDEV_BROADCAST from win32gui_struct, to be
