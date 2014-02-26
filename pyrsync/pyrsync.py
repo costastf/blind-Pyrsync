@@ -154,7 +154,7 @@ class Sync(object):
                             self.logger.debug('Appending include option with argument : {0}'.format(include))                        
                             command.append(self.__options[key] + include)
                     elif key == 'logFile':
-                        command.append(self.__options[key] + value)
+                        command.append(self.__options[key] + self.__normalizePath(value))
                     else:
                         self.logger.debug('Appending option {0} with argument : {0}'.format(key, self.__options[key]))
                         command.append(self.__options[key])

@@ -41,14 +41,14 @@ if sys.platform == 'win32':
 class WindowsBalloonTip(object):
     def __init__(self):
         message_map = {win32con.WM_DESTROY: self.__OnDestroy,}
-        wc = win32gui.WNDCLASS()
-        self.hinst = wc.hInstance = win32api.GetModuleHandle(None)
-        wc.lpszClassName = "PythonTaskbar"
-        wc.lpfnWndProc = message_map
-        self.classAtom = win32gui.RegisterClass(wc)
+        self.wc = win32gui.WNDCLASS()
+        self.hinst = self.wc.hInstance = win32api.GetModuleHandle(None)
+        self.wc.lpszClassName = "PythonTaskbar"
+        self.wc.lpfnWndProc = message_map
         self.style = win32con.WS_OVERLAPPED | win32con.WS_SYSMENU
 
     def message(self, title, msg):
+        self.classAtom = win32gui.RegisterClass(self.wc)    
         self.hwnd = win32gui.CreateWindow( self.classAtom, "Taskbar", self.style, \
                 0, 0, win32con.CW_USEDEFAULT, win32con.CW_USEDEFAULT, \
                 0, 0, self.hinst, None)
@@ -60,8 +60,9 @@ class WindowsBalloonTip(object):
         win32gui.Shell_NotifyIcon(win32gui.NIM_MODIFY, \
                          (self.hwnd, 0, win32gui.NIF_INFO, win32con.WM_USER+20,\
                           hicon, "Balloon  tooltip",msg,200,title))
-        time.sleep(5)
+        time.sleep(3)
         win32gui.DestroyWindow(self.hwnd)
+        self.classAtom = win32gui.UnregisterClass(self.classAtom, self.hinst)
     def __OnDestroy(self, hwnd, msg, wparam, lparam):
         nid = (self.hwnd, 0)
         win32gui.Shell_NotifyIcon(win32gui.NIM_DELETE, nid)
@@ -97,7 +98,8 @@ class Notify(object):
             self.logger.debug('Initializing WindowsBalloonTip')
             self.__notifier = WindowsBalloonTip()
             self.message = self.__message
-            
+
+                
     def __message(self, header, message):
         if sys.platform == 'linux2':
             os.putenv('XAUTHORITY', '/home/{0}/.Xauthority'.format(self.user))
@@ -108,3 +110,4 @@ class Notify(object):
         if sys.platform == 'win32':
             tip = Thread(target=self.__notifier.message, args=(header, message))
             tip.start()                 
+

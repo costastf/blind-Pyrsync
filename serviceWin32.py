@@ -86,7 +86,7 @@ class DeviceEventService (win32serviceutil.ServiceFramework):
     #
     def GetAcceptedControls(self):
         rc = win32serviceutil.ServiceFramework.GetAcceptedControls (self)
-        rc |= win32service.SERVICE_CONTROL_DEVICEEVENT
+        rc |= win32service.SERVICE_CONTROL_DEVICEEVENT  
         return rc
 
     #

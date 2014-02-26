@@ -57,7 +57,12 @@ if __name__=='__main__':
         logger.error('Not enough arguments. Exiting')
         raise SystemExit
     time.sleep(5)
-    device, partition = getDriveLetterFromSerial(serial)    
+    try:
+        device, partition = getDriveLetterFromSerial(serial)    
+    except TypeError:
+        logger.error('Something happened with the drive query.')
+        logger.error('Traceback : ', exc_info=True)
+        raise SystemExit    
     logger.debug('Got device : {0}'.format(device))
     logger.debug('Got partition : {0}'.format(partition))
     backUp = BackUp()
