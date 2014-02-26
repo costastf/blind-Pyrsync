@@ -106,7 +106,7 @@ class DeviceEventService (win32serviceutil.ServiceFramework):
             servicemanager.LogMsg (
                 servicemanager.EVENTLOG_INFORMATION_TYPE,
                 0xF000,
-                ("Device %s arrived" % serial, '')
+                ("Device %s attached" % serial, '')
             )
             Popen([PYTHONPATH, STAGINGPROG, serial], creationflags=DETACHED_PROCESS, cwd=CWD )
         elif event_type == DBT_DEVICEREMOVECOMPLETE:

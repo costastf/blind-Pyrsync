@@ -30,18 +30,22 @@ logger = logging.getLogger(__name__)
 
 def getDriveLetterFromSerial(serial):
     try:
+        logger.debug('Trying to get device and drive letter from serial.')
         c = wmi.WMI ()
         for disk in c.Win32_DiskDriveToDiskPartition():
             deviceSerial = disk.Antecedent.PNPDeviceID.split('\\')[-1].split('&')[0]
             if deviceSerial == serial:
-                systemName = disk.Antecedent.SystemName                
+                systemName = disk.Antecedent.SystemName      
+                logger.debug('Device system name : {0}'.format(systemName))          
                 diskIndex = disk.Dependent.DiskIndex
                 for partition in c.Win32_LogicalDiskToPartition():
                     if partition.Antecedent.DiskIndex == diskIndex:
                         driveLetter = partition.Dependent.Name
+                        logger.debug('Device drive letter : {0}'.format(driveLetter)) 
                         return systemName, driveLetter
     except Exception, e:
-        print('Something happened with the drive query :{0}.Quiting..'.format(e))
+        logger.error('Something happened with the drive query.')
+        logger.error('Traceback : ', exc_info=True)
         raise SystemExit
 
 
