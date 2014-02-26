@@ -252,6 +252,7 @@ class BackUp(object):
                     logger.debug('Appending to summary log file "{0}" drive\'s partition usage.'.format(summaryFile.name))  
                     sifile.write(checkPartitionUsage(self.drive.mountedPath ,self.warning))
             logger.debug('Removing rsync log file {0}'.format(partLogFile.name)) 
+            partLogFile.close()
             os.unlink(partLogFile.name)
             logger.debug('Done removing rsync log file {0}'.format(partLogFile.name)) 
         return text, logFile, stdoutFile, summaryFile
