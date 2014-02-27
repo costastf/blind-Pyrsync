@@ -166,14 +166,20 @@ class Drive(object):
         win32file.DeviceIoControl(hVolume, FSCTL_LOCK_VOLUME, "", 0, None)
         win32file.DeviceIoControl(hVolume, FSCTL_DISMOUNT_VOLUME, "", 0, None)
         try:
-	        win32file.DeviceIoControl(hVolume, IOCTL_STORAGE_MEDIA_REMOVAL, struct.pack("B", 0), 0, None)
-	        win32file.DeviceIoControl(hVolume, IOCTL_STORAGE_EJECT_MEDIA, "", 0, None)
+            self.logger.debug('Removing - Ejecting drive letter : {0}'.format(self.partition))
+            win32file.DeviceIoControl(hVolume, IOCTL_STORAGE_MEDIA_REMOVAL, struct.pack("B", 0), 0, None)
+            win32file.DeviceIoControl(hVolume, IOCTL_STORAGE_EJECT_MEDIA, "", 0, None)
         except:
-	        raise
+            self.logger.warning('Error removing - ejecting drive letter : {0}'.format(self.partition))
+            self.logger.warning('Traceback : ', exc_info=True)
         finally:
 	        win32file.CloseHandle(hVolume)
-        time.sleep(1)
-        shell.SHChangeNotify(shellcon.SHCNE_DRIVEREMOVED, shellcon.SHCNF_PATH, "{0}\\".format(self.partition)) 
+	        self.logger.debug('Waiting 2 secs to settle')
+	        time.sleep(2)
+	        self.logger.debug('Removing drive letter {0} from explorer'.format(self.partition))
+	        shell.SHChangeNotify(shellcon.SHCNE_DRIVEREMOVED, shellcon.SHCNF_PATH, "{0}\\".format(self.partition))
+	        self.logger.debug('Done removing drive letter {0} from explorer'.format(self.partition))
+        return True, False
 
     def __attachW(self):
         '''Not applicable in windows'''
