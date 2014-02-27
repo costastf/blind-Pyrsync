@@ -285,8 +285,8 @@ class BackUp(object):
             logger.error('There was error in the jobs. Cleaning up...')
             logger.error('Traceback : ', exc_info=True)
         finally:    
-            logger.debug('Unounting partition {0}.'.format(self.drive.partition))
-            logger.info('Unounting partition {0}.'.format(self.drive.partition))            
+            logger.debug('Unmounting partition {0}.'.format(self.drive.partition))
+            logger.info('Unmounting partition {0}.'.format(self.drive.partition))            
             out, error = self.drive.umount()
             if error:
                 logger.error('Error unmounting partition {0} : {1}.'.format(self.drive.partition, error))
