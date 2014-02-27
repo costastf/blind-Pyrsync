@@ -174,8 +174,8 @@ class Drive(object):
             self.logger.warning('Traceback : ', exc_info=True)
         finally:
 	        win32file.CloseHandle(hVolume)
-	        self.logger.debug('Waiting 2 secs to settle')
-	        time.sleep(2)
+	        self.logger.debug('Waiting 5 secs to settle')
+	        time.sleep(5)
 	        self.logger.debug('Removing drive letter {0} from explorer'.format(self.partition))
 	        shell.SHChangeNotify(shellcon.SHCNE_DRIVEREMOVED, shellcon.SHCNF_PATH, "{0}\\".format(self.partition))
 	        self.logger.debug('Done removing drive letter {0} from explorer'.format(self.partition))
