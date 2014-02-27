@@ -28,7 +28,9 @@ import time
 import sys
 from subprocess import Popen, PIPE
 import logging
-
+if sys.platform == 'win32':
+    from win32com.shell import shell, shellcon
+    import win32api, win32gui, win32con, win32file, struct
 
 class Drive(object):
     def __init__(self, device, partition):
@@ -126,13 +128,53 @@ class Drive(object):
         return out, error    
         
     def __mountW(self):
-        return True, False
+        ''' We hide the drive letter from explorer so the user cannot meddle with the rsync process,
+        and we try to show a similar usage with the linux process. The drive letter will be shown to 
+        the user when the rsync process is finished. Since mount is not applicable in windows we just 
+        make it seem like its working like on linux.'''
+        try:
+            shell.SHChangeNotify(shellcon.SHCNE_DRIVEREMOVED, shellcon.SHCNF_PATH, "{0}\\".format(self.partition))
+            result = True, False
+        except:
+            self.logger.warning('Error hiding drive letter : {0}'.format(self.partition))
+            self.logger.warning('Traceback : ', exc_info=True)    
+            result = True, sys.exc_info()[0]
+        return result
 
     def __umountW(self):    
-        return True, False
-
+        ''' We show the drive letter in explorer  after the rsync process is done.Since mount is not 
+        applicable in windows we just make it seem like its working like on linux.'''    
+        try:
+            shell.SHChangeNotify(shellcon.SHCNE_DRIVEADD, shellcon.SHCNF_PATH, "{0}\\".format(self.partition))
+            result = True, False
+        except:
+            self.logger.warning('Error showing drive letter : {0}'.format(self.partition))
+            self.logger.warning('Traceback : ', exc_info=True)    
+            result = True, sys.exc_info()[0]
+        return result
+        
     def __detachW(self):    
-        pass
+        FSCTL_LOCK_VOLUME = 0x0090018
+        FSCTL_DISMOUNT_VOLUME = 0x00090020
+        IOCTL_STORAGE_MEDIA_REMOVAL = 0x002D4804
+        IOCTL_STORAGE_EJECT_MEDIA = 0x002D4808
+        lpFileName = r"\\.\{0}".format(self.partition)
+        dwDesiredAccess = win32con.GENERIC_READ|win32con.GENERIC_WRITE
+        dwShareMode = win32con.FILE_SHARE_READ|win32con.FILE_SHARE_WRITE
+        dwCreationDisposition = win32con.OPEN_EXISTING
+        hVolume = win32file.CreateFile(lpFileName, dwDesiredAccess, dwShareMode, None, dwCreationDisposition, 0, None)
+        win32file.DeviceIoControl(hVolume, FSCTL_LOCK_VOLUME, "", 0, None)
+        win32file.DeviceIoControl(hVolume, FSCTL_DISMOUNT_VOLUME, "", 0, None)
+        try:
+	        win32file.DeviceIoControl(hVolume, IOCTL_STORAGE_MEDIA_REMOVAL, struct.pack("B", 0), 0, None)
+	        win32file.DeviceIoControl(hVolume, IOCTL_STORAGE_EJECT_MEDIA, "", 0, None)
+        except:
+	        raise
+        finally:
+	        win32file.CloseHandle(hVolume)
+        time.sleep(1)
+        shell.SHChangeNotify(shellcon.SHCNE_DRIVEREMOVED, shellcon.SHCNF_PATH, "{0}\\".format(self.partition)) 
 
     def __attachW(self):
+        '''Not applicable in windows'''
         return True, False
